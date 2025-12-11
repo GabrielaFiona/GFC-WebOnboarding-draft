@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +8,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -38,7 +41,7 @@
     <div class="progress-header">
         <div class="progress-bar">
             <div class="progress-line-bg"></div>
-            <!-- Step 2 out of 4 -->
+            <!-- Step 2 / 4 -->
             <div class="progress-line-fill" id="progress-fill" style="width:33.33%;"></div>
 
             <div class="step-indicator completed" id="step-ind-1">
@@ -80,7 +83,7 @@
                 </p>
             </div>
 
-            <!-- 1. PACKAGES + BRAND KIT STACK -->
+            <!-- 1. PACKAGES + BRAND KIT -->
             <h2 class="section-title">1. Choose a Website Package</h2>
 
             <div class="package-stack">
@@ -91,9 +94,7 @@
                     <div class="package-card basic-card"
                          onclick="selectPackage('basic', 'Basic Website', 750, 2, 425, 150, this)">
                         <div class="package-img-placeholder">
-                            <!-- Optional: replace with image, e.g.
-                            <img src="images/basic-website.jpg" alt="Basic Website Preview">
-                            -->
+                            <!-- Optional: add <img> if you want -->
                         </div>
                         <div class="package-content">
                             <span class="package-title">Basic Website</span>
@@ -127,7 +128,7 @@
                     <div class="package-card polished-card"
                          onclick="selectPackage('polished', 'Polished Brand Site', 2250, 4, 400, 175, this)">
                         <div class="package-img-placeholder">
-                            <!-- Optional image here -->
+                            <!-- Optional: add <img> -->
                         </div>
                         <div class="package-content">
                             <span class="package-title">Polished Brand Site</span>
@@ -152,7 +153,7 @@
                                 (each = one list of text tweaks, image swaps, and minor layout edits).
                                 <br>
                                 <strong>After-launch support:</strong> 30 days, up to ~2 hours of tweaks,
-                                plus 1 × 30-min follow-up call around week 3–4 to review analytics & answer questions.
+                                plus 1 × 30-min follow-up call around week 3–4 to review analytics & questions.
                             </p>
                         </div>
                     </div>
@@ -161,7 +162,7 @@
                     <div class="package-card pro-card"
                          onclick="selectPackage('professional', 'Professional Website', 4000, 6, 375, 200, this)">
                         <div class="package-img-placeholder">
-                            <!-- Optional image here -->
+                            <!-- Optional: add <img> -->
                         </div>
                         <div class="package-content">
                             <span class="package-title">Professional Website</span>
@@ -193,7 +194,7 @@
 
                 </div> <!-- /package-grid -->
 
-                <!-- BRAND KIT RECTANGLE (centered, under the packages) -->
+                <!-- BRAND KIT CARD UNDER PACKAGES -->
                 <div class="brand-kit-bar" id="brand-kit-bar" onclick="toggleBrandKit(this)">
                     <div class="kit-details">
                         <span class="kit-title">Brand Kit</span>
@@ -221,42 +222,46 @@
                 </div>
             </div> <!-- /package-stack -->
 
-            <!-- SECTION 2: PAGES + ADD-ONS -->
+            <!-- SECTION 2: PAGES + FUNCTIONALITY (two separate bubbles) -->
             <hr class="divider">
 
             <h2 class="section-title">2. Website Structure &amp; Add-ons</h2>
 
-            <!-- PAGES FIRST -->
-            <div id="addons-section" class="sitemap-builder hidden">
-                <h3>Your Sitemap (Pages)</h3>
-                <p>
-                    Let’s list the pages you need. Your selected package includes
-                    <strong id="included-pages-count">0</strong> pages.
-                    Additional pages are
-                    $<span id="extra-page-unit-cost">150</span>/ea for standard additional pages.
-                </p>
+            <!-- Wrapper for the two bubbles -->
+            <div id="addons-section" class="addons-section hidden">
 
-                <div class="page-input-group">
-                    <input
-                        type="text"
-                        id="newPageName"
-                        placeholder="e.g. Home, Services, About, Contact"
-                        onkeypress="handleEnter(event)">
-                    <button class="btn btn-add" type="button" onclick="addPage()">+ Add Page</button>
+                <!-- BUBBLE 1: Your Sitemap (Pages) -->
+                <div class="sitemap-builder">
+                    <h3>Your Sitemap (Pages)</h3>
+                    <p>
+                        Let’s list the pages you need. Your selected package includes
+                        <strong id="included-pages-count">0</strong> pages.
+                        Additional pages are
+                        $<span id="extra-page-unit-cost">150</span>/ea for standard additional pages.
+                    </p>
+
+                    <div class="page-input-group">
+                        <input
+                            type="text"
+                            id="newPageName"
+                            placeholder="e.g. Home, Services, About, Contact"
+                            onkeypress="handleEnter(event)">
+                        <button class="btn btn-add" type="button" onclick="addPage()">+ Add Page</button>
+                    </div>
+
+                    <div id="page-list" class="page-list"></div>
+
+                    <div class="page-summary">
+                        <span>Total Pages: <span id="total-page-count">0</span></span>
+                        <span class="extra-cost-tag" id="extra-page-cost" style="display:none;">+ Extra Cost: $0</span>
+                    </div>
                 </div>
 
-                <div id="page-list" class="page-list"></div>
-
-                <div class="page-summary">
-                    <span>Total Pages: <span id="total-page-count">0</span></span>
-                    <span class="extra-cost-tag" id="extra-page-cost" style="display:none;">+ Extra Cost: $0</span>
-                </div>
-
-                <!-- FUNCTIONALITY / SERVICES ADD-ONS -->
-                <div style="margin-top:40px;">
+                <!-- BUBBLE 2: Functionality & Services -->
+                <div class="sitemap-builder">
                     <h3>Functionality &amp; Services</h3>
-                    <p style="font-size:0.9rem; color:var(--text-light); opacity:0.7; margin-bottom:15px;">
-                        You can pre-select anything that feels aligned. We’ll refine exactly what’s needed together.
+                    <p style="font-size:0.9rem; opacity:0.85;">
+                        These are optional add-ons we’ll finalize together. You can pre-select anything that feels aligned.
                     </p>
 
                     <div class="addons-list">
@@ -296,7 +301,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
+
+            </div> <!-- /addons-section -->
 
             <!-- NAV BUTTONS -->
             <div class="step-nav-buttons" style="margin-top:40px; display:flex; justify-content:space-between;">
@@ -317,7 +323,7 @@
     <!-- STEP 2 RESTORE LOGIC -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Load shared state
+        // Load shared state (from script.js)
         if (window.loadState) {
             window.loadState();
         }
@@ -333,9 +339,9 @@
                 selectedCard.classList.add('selected');
             }
 
-            const addonsSection = document.getElementById('addons-section');
-            if (addonsSection) {
-                addonsSection.classList.remove('hidden');
+            const addonsWrapper = document.getElementById('addons-section');
+            if (addonsWrapper) {
+                addonsWrapper.classList.remove('hidden');
             }
 
             const incEl = document.getElementById('included-pages-count');
@@ -356,7 +362,7 @@
             }
         }
 
-        // Restore add-on pill visuals
+        // Restore pre-selected add-ons visually
         if (window.state && Array.isArray(window.state.addons)) {
             window.state.addons.forEach(function (addon) {
                 const pill = document.querySelector(
@@ -368,7 +374,7 @@
             });
         }
 
-        // Show stored goal from Step 1 in the widget
+        // Restore goal from Step 1 in widget
         const storedGoal = localStorage.getItem('mainGoal');
         if (storedGoal) {
             const goalDisplay = document.getElementById('fw-goal-display');
@@ -378,7 +384,7 @@
             }
         }
 
-        // Make sure Brand Kit visuals & totals are correct
+        // Make sure Brand Kit & totals are in sync
         if (window.updateBrandKitDisplay) {
             window.updateBrandKitDisplay();
         }
