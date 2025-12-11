@@ -4,21 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Onboarding - Gabriela Fiona</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css"> 
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- FLOATING INVOICE WIDGET (shared with Step 2) -->
 <div id="floating-widget" class="collapsed">
     <div class="fw-header" onclick="toggleWidget()">
         <span>ESTIMATED TOTAL</span>
         <span id="fw-header-total">$0</span>
     </div>
     <div class="fw-goal" id="fw-goal-display" style="display: none;"></div>
-    
+
     <div class="fw-content">
         <div id="fw-items">
             <p style="font-size:0.8rem; color:#666; font-style:italic;">Items added will appear here...</p>
@@ -33,22 +35,32 @@
     </div>
 </div>
 
+<!-- PROGRESS BAR -->
 <div class="progress-header">
     <div class="progress-bar">
         <div class="progress-line-bg"></div>
-        <div class="progress-line-fill" id="progress-fill"></div>
-        
-        <div class="step-indicator active" id="step-ind-1">1 <div class="step-label">Business Goals</div></div>
-        <div class="step-indicator" id="step-ind-2">2 <div class="step-label">Build Structure</div></div>
-        <div class="step-indicator" id="step-ind-3">3 <div class="step-label">Action Plan</div></div>
-        <div class="step-indicator" id="step-ind-4">4 <div class="step-label">Finalize Plan</div></div>
+        <!-- Step 1 = 0% of 3 intervals -->
+        <div class="progress-line-fill" id="progress-fill" style="width: 0%;"></div>
+
+        <div class="step-indicator active" id="step-ind-1">
+            1 <div class="step-label">Business Goals</div>
+        </div>
+        <div class="step-indicator" id="step-ind-2">
+            2 <div class="step-label">Build Structure</div>
+        </div>
+        <div class="step-indicator" id="step-ind-3">
+            3 <div class="step-label">Action Plan</div>
+        </div>
+        <div class="step-indicator" id="step-ind-4">
+            4 <div class="step-label">Finalize Plan</div>
+        </div>
     </div>
 </div>
 
+<!-- PAGE CONTENT -->
 <div class="container">
-
     <div id="step-1" class="step-section active">
-        
+
         <div class="welcome-grid">
             <div class="welcome-text">
                 <h1>Welcome.</h1>
@@ -128,116 +140,73 @@
                 </div>
             </div>
 
-<div class="step-nav-buttons" style="justify-content: flex-end; gap: 15px;">
-    <button class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
-    <button class="btn btn-primary" onclick="nextStep(2)">Next: Build Structure &rarr;</button>
-</div>
+            <div class="step-nav-buttons" style="justify-content: flex-end; gap: 15px;">
+                <button class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+                <button class="btn btn-primary" onclick="nextStep(2)">Next: Build Structure &rarr;</button>
+            </div>
         </div>
-    </div>
 
-    <div id="step-2" class="step-section">
-        <h2>Step 2: Build Structure</h2>
-        <p>We will build this section next...</p>
-        <div class="step-nav-buttons" style="justify-content: space-between;">
-            <button class="btn btn-secondary" onclick="nextStep(1)">&larr; Back: Business Goals</button>
-            <button class="btn btn-primary" onclick="nextStep(3)">Next: Set Action Plan &rarr;</button>
-        </div>
     </div>
-
-    <div id="step-3" class="step-section">
-        <h2>Step 3: Set Action Plan</h2>
-        <p>We will build this section next...</p>
-        <div class="step-nav-buttons" style="justify-content: space-between;">
-            <button class="btn btn-secondary" onclick="nextStep(2)">&larr; Back: Build Structure</button>
-            <button class="btn btn-primary" onclick="nextStep(4)">Next: Finalize Plan &rarr;</button>
-        </div>
-    </div>
-    
-    <div id="step-4" class="step-section">
-        <h2>Step 4: Finalize Plan</h2>
-        <p>We will build this section next...</p>
-        <div class="step-nav-buttons" style="justify-content: flex-start;">
-            <button class="btn btn-secondary" onclick="nextStep(3)">&larr; Back: Set Action Plan</button>
-        </div>
-    </div>
-
 </div>
 
-<script src="script.js"></script> 
+<!-- SHARED JS -->
+<script src="script.js"></script>
 
+<!-- STEP 1–SPECIFIC JS (autosave + goal tracker) -->
 <script>
-    // --- STATE MANAGEMENT ---
-    let currentStep = 1;
-
-    // --- AUTO-SAVE LOGIC & GOAL TRACKER ---
-    document.addEventListener("DOMContentLoaded", function() {
-        const savedInputs = document.querySelectorAll(".save-me");
-        savedInputs.forEach(input => {
-            const savedValue = localStorage.getItem(input.id);
-            if (savedValue) {
-                input.value = savedValue;
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Restore saved intake values from localStorage
+    const savedInputs = document.querySelectorAll(".save-me");
+    savedInputs.forEach(input => {
+        const savedValue = localStorage.getItem(input.id);
+        if (savedValue) {
+            input.value = savedValue;
+        }
+        input.addEventListener("input", function() {
+            localStorage.setItem(this.id, this.value);
+            if (this.classList.contains('goal-tracker')) {
+                updateGoalTracker();
             }
-            input.addEventListener("input", function() {
-                localStorage.setItem(this.id, this.value);
-                if (this.classList.contains('goal-tracker')) {
-                    updateGoalTracker();
-                }
-            });
         });
-
-        // Initialize goal tracker on load
-        updateGoalTracker();
     });
 
-    function updateGoalTracker() {
-        const goal = document.getElementById('mainGoal').value;
-        const goalDisplay = document.getElementById('fw-goal-display');
-        
-        // FIX: Now checking against empty string value ("") which is set in the HTML for the placeholder option.
-        if (goal && goal !== "") {
-            goalDisplay.innerText = "Goal: " + goal;
-            goalDisplay.style.display = 'block';
-        } else {
-            goalDisplay.style.display = 'none';
-        }
+    // 2. Initialize goal tracker
+    updateGoalTracker();
+
+    // 3. Load shared invoice state so the widget reflects any Step 2 choices
+    if (window.loadState) {
+        window.loadState();
     }
-
-    function resetForm() {
-        if(confirm("Are you sure you want to clear all client data?")) {
-            localStorage.clear();
-            location.reload();
-        }
+    if (window.calculateTotal) {
+        window.calculateTotal();
     }
+});
 
-    // --- NAVIGATION ---
-    function nextStep(step) {
-        if (currentStep === 1 && step === 2) {
-            const name = document.getElementById('clientName').value;
-            if(!name) { alert("Please enter at least the Client Name to proceed."); return; }
-        }
-        
-        if (step < currentStep) {
-            document.querySelector(`#step-ind-${currentStep}`).classList.remove('completed');
-        } else if (step > currentStep) {
-            document.querySelector(`#step-ind-${currentStep}`).classList.add('completed');
-        }
+function updateGoalTracker() {
+    const goalSelect = document.getElementById('mainGoal');
+    const goalDisplay = document.getElementById('fw-goal-display');
+    if (!goalSelect || !goalDisplay) return;
 
-        document.querySelector(`#step-${currentStep}`).classList.remove('active');
-        document.querySelector(`#step-ind-${currentStep}`).classList.remove('active');
-        
-        currentStep = step;
-        document.querySelector(`#step-${currentStep}`).classList.add('active');
-        document.querySelector(`#step-ind-${currentStep}`).classList.add('active');
+    const goal = goalSelect.value;
 
-        const percent = (step - 1) * (100 / 3);
-        document.getElementById('progress-fill').style.width = percent + '%';
-
-        window.scrollTo(0,0);
+    if (goal && goal !== "") {
+        goalDisplay.innerText = "Goal: " + goal;
+        goalDisplay.style.display = 'block';
+        // Also persist this so Step 2+ can show it
+        localStorage.setItem('mainGoal', goal);
+    } else {
+        goalDisplay.style.display = 'none';
+        localStorage.removeItem('mainGoal');
     }
+}
 
-    function toggleWidget() {
-        document.getElementById('floating-widget').classList.toggle('collapsed');
+function resetForm() {
+    if (confirm("Are you sure you want to clear all client data and selections?")) {
+        // Clear everything (intake + packages + invoice)
+        localStorage.clear();
+        location.reload();
     }
+}
 </script>
 
 </body>
