@@ -1,21 +1,28 @@
 // --- STATE MANAGEMENT ---
 const state = {
-    package: null,   // { id, name, price, includedPages }
+    package: null,   // { id, name, price, includedPages, brandKitBundlePrice }
+    brandKit: false, // Boolean: true if selected
     pages: [],       // Array of strings (Page Names)
     addons: []       // Array of { id, name, price }
 };
 
-const EXTRA_PAGE_COST = 150; 
+const EXTRA_PAGE_COST = 150; // Base rate, will be dynamic later
+const BASE_BRAND_KIT_PRICE = 500; // Standalone price for Brand Kit
 
 // --- PACKAGE SELECTION ---
-function selectPackage(id, price, includedPages, element) {
+function selectPackage(id, name, price, includedPages, brandKitBundlePrice, element) {
     // 1. Visual selection
     document.querySelectorAll('.package-card').forEach(el => el.classList.remove('selected'));
     element.classList.add('selected');
 
     // 2. Update State
-    const title = element.querySelector('.package-title').innerText;
-    state.package = { id, name: title, price, includedPages };
+    state.package = { 
+        id, 
+        name, 
+        price, 
+        includedPages, 
+        brandKitBundlePrice // New property to store the bundled price
+    };
 
     // 3. Update UI text
     document.getElementById('included-pages-count').innerText = includedPages;
@@ -32,157 +39,45 @@ function selectPackage(id, price, includedPages, element) {
         widget.classList.remove('collapsed');
     }
 
+    // Recalculate everything, including potentially bundled Brand Kit price
     calculateTotal();
 }
 
-// --- PAGE BUILDER LOGIC ---
-function addPage() {
-    const input = document.getElementById('newPageName');
-    const name = input.value.trim();
-
-    if (name) {
-        state.pages.push(name);
-        input.value = ''; // Clear input
-        renderPageList();
-        calculateTotal();
-    }
-}
-
-function removePage(index) {
-    state.pages.splice(index, 1);
-    renderPageList();
+// --- BRAND KIT LOGIC (NEW) ---
+function toggleBrandKit(element) {
+    state.brandKit = !state.brandKit;
+    element.classList.toggle('selected', state.brandKit);
+    
+    // Update the UI price display on the bar
+    updateBrandKitDisplay();
+    
     calculateTotal();
 }
 
-function handleEnter(e) {
-    if (e.key === 'Enter') addPage();
-}
+function updateBrandKitDisplay() {
+    const bar = document.getElementById('brand-kit-bar');
+    const ogPriceEl = bar.querySelector('.og-price');
+    const discountLabelEl = bar.querySelector('.discount-label');
+    const finalPriceEl = bar.querySelector('.final-price');
 
-function renderPageList() {
-    const list = document.getElementById('page-list');
-    list.innerHTML = ''; // Clear current list
+    if (state.brandKit && state.package && state.package.brandKitBundlePrice) {
+        // Bundled Price Display
+        const bundledPrice = state.package.brandKitBundlePrice;
+        ogPriceEl.innerText = `$${BASE_BRAND_KIT_PRICE.toLocaleString()}`;
+        finalPriceEl.innerText = `$${bundledPrice.toLocaleString()}`;
 
-    state.pages.forEach((page, index) => {
-        const div = document.createElement('div');
-        div.className = 'page-item';
-        div.innerHTML = `
-            ${page}
-            <span class="remove-page" onclick="removePage(${index})">&times;</span>
-        `;
-        list.appendChild(div);
-    });
-
-    document.getElementById('total-page-count').innerText = state.pages.length;
-}
-
-// --- ADDONS LOGIC ---
-function toggleAddon(id, price, element) {
-    element.classList.toggle('selected');
-    const name = element.querySelector('.addon-name').innerText;
-
-    if (element.classList.contains('selected')) {
-        state.addons.push({ id, name, price });
+        ogPriceEl.style.display = 'inline';
+        discountLabelEl.style.display = 'block';
     } else {
-        state.addons = state.addons.filter(a => a.id !== id);
+        // Standard Price Display or Not Selected
+        finalPriceEl.innerText = `$${BASE_BRAND_KIT_PRICE.toLocaleString()}`;
+        ogPriceEl.style.display = 'none';
+        discountLabelEl.style.display = 'none';
     }
-    calculateTotal();
 }
 
-// --- INVOICE CALCULATION ---
-function calculateTotal() {
-    const fwItems = document.getElementById('fw-items');
-    let html = '';
-    let total = 0;
 
-    // 1. Base Package
-    if (state.package) {
-        html += `<div class="fw-item"><span>${state.package.name}</span><span>$${state.package.price.toLocaleString()}</span></div>`;
-        total += state.package.price;
-    }
-
-    // 2. Extra Pages Calculation
-    if (state.package) {
-        const extraPages = Math.max(0, state.pages.length - state.package.includedPages);
-        if (extraPages > 0) {
-            const extraCost = extraPages * EXTRA_PAGE_COST;
-            html += `<div class="fw-item"><span>Extra Pages (${extraPages} x $150)</span><span>$${extraCost.toLocaleString()}</span></div>`;
-            total += extraCost;
-            
-            // Update UI tag
-            const tag = document.getElementById('extra-page-cost');
-            tag.style.display = 'inline';
-            tag.innerText = `+ Extra Cost: $${extraCost}`;
-        } else {
-            // Check if tag exists before trying to style it
-             const tag = document.getElementById('extra-page-cost');
-             if (tag) {
-                tag.style.display = 'none';
-             }
-        }
-    }
-
-    // 3. Add-ons
-    state.addons.forEach(addon => {
-        html += `<div class="fw-item"><span>+ ${addon.name}</span><span>$${addon.price.toLocaleString()}</span></div>`;
-        total += addon.price;
-    });
-
-    // Render
-    if (html === '') html = '<p class="empty-state">Select a package to start...</p>';
-    fwItems.innerHTML = html;
-
-    document.getElementById('fw-header-total').innerText = '$' + total.toLocaleString();
-    document.getElementById('fw-full-total').innerText = '$' + total.toLocaleString();
-    document.getElementById('fw-deposit').innerText = '$' + (total / 2).toLocaleString();
-}
-
-function toggleWidget() {
-    document.getElementById('floating-widget').classList.toggle('collapsed');
-}
-// --- STATE MANAGEMENT ---
-const state = {
-    package: null,   // { id, name, price, includedPages }
-    pages: [],       // Array of strings (Page Names)
-    addons: []       // Array of { id, name, price }
-};
-
-const EXTRA_PAGE_COST = 150; 
-
-// --- PACKAGE SELECTION ---
-function selectPackage(id, name, price, includedPages, element) {
-    // This function must be robust enough to be called mid-process (when pages/addons are selected)
-    // 1. Visual selection
-    document.querySelectorAll('.package-card').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-
-    // 2. Update State
-    // The 'name' is now passed directly from the HTML for consistency, rather than reading it from the DOM
-    state.package = { id, name, price, includedPages };
-
-    // 3. Update UI text (for Step 2 elements)
-    const includedPagesEl = document.getElementById('included-pages-count');
-    if (includedPagesEl) includedPagesEl.innerText = includedPages;
-    
-    const addonsSectionEl = document.getElementById('addons-section');
-    if (addonsSectionEl) addonsSectionEl.classList.remove('hidden');
-
-    // 4. Smooth scroll to addons (Only applies on Step 2)
-    if(element.closest('#step-2')) {
-        setTimeout(() => {
-            if(addonsSectionEl) addonsSectionEl.scrollIntoView({ behavior: 'smooth' });
-        }, 200);
-    }
-    
-    // 5. Open invoice if closed
-    const widget = document.getElementById('floating-widget');
-    if(widget && widget.classList.contains('collapsed')) {
-        widget.classList.remove('collapsed');
-    }
-
-    calculateTotal();
-}
-
-// --- PAGE BUILDER LOGIC ---
+// --- PAGE BUILDER LOGIC (Simplified for Step 2 for now, we'll update extra page costs later) ---
 function addPage() {
     const input = document.getElementById('newPageName');
     const name = input.value.trim();
@@ -207,7 +102,7 @@ function handleEnter(e) {
 
 function renderPageList() {
     const list = document.getElementById('page-list');
-    if (!list) return; // Exit if not on Step 2
+    if (!list) return; // Guard for Step 1
     
     list.innerHTML = ''; // Clear current list
 
@@ -226,10 +121,9 @@ function renderPageList() {
 }
 
 // --- ADDONS LOGIC ---
-function toggleAddon(id, price, element) {
+function toggleAddon(id, name, price, element) {
     element.classList.toggle('selected');
-    const name = element.querySelector('.addon-name').innerText;
-
+    
     if (element.classList.contains('selected')) {
         state.addons.push({ id, name, price });
     } else {
@@ -238,7 +132,7 @@ function toggleAddon(id, price, element) {
     calculateTotal();
 }
 
-// --- INVOICE CALCULATION ---
+// --- INVOICE CALCULATION (Updated to handle Brand Kit) ---
 function calculateTotal() {
     const fwItems = document.getElementById('fw-items');
     let html = '';
@@ -251,12 +145,32 @@ function calculateTotal() {
         total += state.package.price;
     }
 
-    // 2. Extra Pages Calculation
-    if (state.package && state.pages.length > 0) {
+    // 2. Brand Kit Check
+    if (state.brandKit) {
+        let kitPrice = BASE_BRAND_KIT_PRICE;
+        let kitLabel = "Brand Kit";
+        
+        // If a package is selected and has a bundle price, use it
+        if (state.package && state.package.brandKitBundlePrice) {
+            kitPrice = state.package.brandKitBundlePrice;
+            kitLabel += " (Bundled Price)";
+        }
+        
+        html += `<div class="fw-item"><span>+ ${kitLabel}</span><span>$${kitPrice.toLocaleString()}</span></div>`;
+        total += kitPrice;
+        
+        // Ensure the visual price display is updated if package changes
+        updateBrandKitDisplay(); 
+    }
+
+    // 3. Extra Pages Calculation
+    // NOTE: For now, we use a constant EXTRA_PAGE_COST. We'll update this in the next steps 
+    // to use the package-specific costs you provided (150, 175, 200).
+    if (state.package) {
         const extraPages = Math.max(0, state.pages.length - state.package.includedPages);
         if (extraPages > 0) {
             extraCost = extraPages * EXTRA_PAGE_COST;
-            html += `<div class="fw-item"><span>Extra Pages (${extraPages} x $150)</span><span>$${extraCost.toLocaleString()}</span></div>`;
+            html += `<div class="fw-item"><span>Extra Pages (${extraPages} x $${EXTRA_PAGE_COST})</span><span>$${extraCost.toLocaleString()}</span></div>`;
             total += extraCost;
         } 
     }
@@ -272,8 +186,7 @@ function calculateTotal() {
         }
     }
 
-
-    // 3. Add-ons
+    // 4. Add-ons
     state.addons.forEach(addon => {
         html += `<div class="fw-item"><span>+ ${addon.name}</span><span>$${addon.price.toLocaleString()}</span></div>`;
         total += addon.price;
