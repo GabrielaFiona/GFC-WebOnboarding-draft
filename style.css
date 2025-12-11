@@ -281,7 +281,7 @@ select option {
     color: var(--bg-dark);
     padding: 15px 20px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     cursor: pointer;
     font-family: var(--font-body);
