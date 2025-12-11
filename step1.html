@@ -63,7 +63,7 @@
                 <div class="timeline-item">
                     <h4>2. Scope & Strategy</h4>
                     <p>Selecting the exact features and support you need.</p>
-                </p>
+                </div>
                 <div class="timeline-item">
                     <h4>3. The Plan</h4>
                     <p>Reviewing the investment and timeline to get us started.</p>
@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; margin-top: 30px; gap: 15px;">
+            <div class="step-nav-buttons" style="justify-content: flex-end; margin-top: 30px; gap: 15px;">
                 <button class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
                 <button class="btn btn-primary" onclick="nextStep(2)">Next: Build Structure &rarr;</button>
             </div>
@@ -138,19 +138,27 @@
     <div id="step-2" class="step-section">
         <h2>Step 2: Build Structure</h2>
         <p>We will build this section next...</p>
-        <button class="btn btn-secondary" onclick="nextStep(1)">Back</button>
+        <div class="step-nav-buttons" style="justify-content: space-between;">
+            <button class="btn btn-secondary" onclick="nextStep(1)">&larr; Back: Business Goals</button>
+            <button class="btn btn-primary" onclick="nextStep(3)">Next: Set Action Plan &rarr;</button>
+        </div>
     </div>
 
     <div id="step-3" class="step-section">
         <h2>Step 3: Set Action Plan</h2>
         <p>We will build this section next...</p>
-        <button class="btn btn-secondary" onclick="nextStep(2)">Back</button>
+        <div class="step-nav-buttons" style="justify-content: space-between;">
+            <button class="btn btn-secondary" onclick="nextStep(2)">&larr; Back: Build Structure</button>
+            <button class="btn btn-primary" onclick="nextStep(4)">Next: Finalize Plan &rarr;</button>
+        </div>
     </div>
     
     <div id="step-4" class="step-section">
         <h2>Step 4: Finalize Plan</h2>
         <p>We will build this section next...</p>
-        <button class="btn btn-secondary" onclick="nextStep(3)">Back</button>
+        <div class="step-nav-buttons" style="justify-content: flex-start;">
+            <button class="btn btn-secondary" onclick="nextStep(3)">&larr; Back: Set Action Plan</button>
+        </div>
     </div>
 
 </div>
@@ -185,7 +193,6 @@
         const goal = document.getElementById('mainGoal').value;
         const goalDisplay = document.getElementById('fw-goal-display');
         
-        // Check if goal has a non-empty value (i.e., not the placeholder)
         if (goal && goal !== 'Select the primary objective...') {
             goalDisplay.innerText = "Goal: " + goal;
             goalDisplay.style.display = 'block';
