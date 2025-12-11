@@ -13,7 +13,7 @@
 </head>
 <body>
 
-    <!-- FLOATING INVOICE WIDGET (shared) -->
+    <!-- FLOATING INVOICE WIDGET (shared across steps) -->
     <div id="floating-widget" class="collapsed">
         <div class="fw-header" onclick="toggleWidget()">
             <span>ESTIMATED TOTAL</span>
@@ -34,13 +34,12 @@
         </div>
     </div>
 
-    <!-- PROGRESS BAR (4 steps) -->
+    <!-- PROGRESS BAR (matching your new 4-step flow) -->
     <div class="progress-header">
         <div class="progress-bar">
             <div class="progress-line-bg"></div>
-            <!-- Step 2 of 4 = 33.33% -->
             <div class="progress-line-fill" id="progress-fill" style="width:33.33%;"></div>
-            
+
             <div class="step-indicator completed" id="step-ind-1">
                 1
                 <div class="step-label">Business Goals</div>
@@ -62,24 +61,31 @@
 
     <div class="container">
         <div id="step-2" class="step-section active">
-            
-            <!-- Intro -->
+
+            <!-- INTRO (matches the feel of your old Roadmap page) -->
             <div class="intro-block">
                 <h1>Build Your Roadmap</h1>
                 <p>
-                    On this step we’ll choose the website foundation, map out your key pages,
-                    and layer in any add-ons you need. This gives us a clear snapshot of your project scope.
+                    On this step we’ll choose your website package, map your core pages, and layer in any
+                    add-ons you might need. This gives us a clear snapshot of your project scope and investment.
                 </p>
-                <p style="font-size:0.85rem; opacity:0.8;">
-                    <em>All website packages include: strategy call (up to 2 hours), 30 days after-launch support,
-                    mobile-optimized development, basic SEO, and Google Analytics.</em>
+                <p style="font-size:0.85rem; color:var(--text-light); opacity:0.8; max-width:700px;">
+                    <em>
+                        Included in <strong>all</strong> website packages:
+                        Strategy call (up to 2 hours), 30 days after-launch support
+                        (fixing bugs once the site is live, helping with small content tweaks,
+                        answering “how do I…?” questions, and occasional mini trainings),
+                        plus mobile-optimized development, Google Analytics built-in, and basic SEO.
+                        After that support window, additional work is billed according to the add-ons / hourly rates.
+                    </em>
                 </p>
             </div>
-            
-            <!-- 1. Base Packages (same layout as old site) -->
+
+            <!-- 1. BASE PACKAGES (same card layout as reference site) -->
             <h2 class="section-title">1. Choose a Base Package</h2>
 
             <div class="package-grid">
+
                 <!-- BASIC WEBSITE -->
                 <div class="package-card"
                      onclick="selectPackage('basic', 'Basic Website', 750, 2, 425, 150, this)">
@@ -87,21 +93,28 @@
                     <div class="package-content">
                         <span class="package-title">Basic Website</span>
                         <span class="package-price">$750</span>
-                        <div class="package-meta">1–2 Pages · 5–7 Days</div>
+                        <div class="package-meta">Simple site · 1–2 pages · 5–7 days</div>
                         <p class="package-desc">
                             A clean, functional Google Site with essential business information, a basic contact form,
-                            and any client-provided content (logo + copy) added for you.
+                            and your client-provided assets (logo and website copy) added for you.
                             <br><br>
-                            <strong>Best for:</strong> new businesses or freelancers who need a simple online presence —
-                            essentially an online business card with a contact option.
+                            <strong>Included:</strong> simple Google Site (1–2 pages), basic contact form,
+                            free Google Site URL/subdomain, basic SEO, and Google Analytics.
+                            <br>
+                            <strong>Best for:</strong> new businesses, freelancers, or operations that need a
+                            simple online presence — essentially an online business card with a contact option.
                             <br><br>
                             <strong>Suggested add-ons:</strong> extra page +$150, domain connection +$75,
-                            light copy polish +$75/page, or Full Page From Scratch (copy + SEO + build) at $250/page.
+                            light copy polish +$75 per page,
+                            or <em>Full Page From Scratch</em> (copy + SEO + build) at
+                            <strong>$250 per page</strong>.
                             <br>
-                            <strong>Brand Kit bundle:</strong> $425 (15% off).
+                            <strong>Brand Kit bundle:</strong> <strong>$425</strong> (15% off standard Brand Kit price).
                             <br>
-                            <strong>Revisions & support:</strong> 1 round of consolidated revisions, plus
-                            30 days of launch support (up to ~1 hour of small content tweaks).
+                            <strong>Revisions:</strong> 1 round of consolidated revisions
+                            (one list of text tweaks, image swaps, and minor layout changes).
+                            <br>
+                            <strong>After-launch support:</strong> 30 days, up to ~1 hour of small content tweaks total.
                         </p>
                     </div>
                 </div>
@@ -113,21 +126,30 @@
                     <div class="package-content">
                         <span class="package-title">Polished Brand Site</span>
                         <span class="package-price">$2,250</span>
-                        <div class="package-meta">Up to 4 Pages · 2–3 Weeks</div>
+                        <div class="package-meta">Custom design · up to 4 pages · 2–3 weeks</div>
                         <p class="package-desc">
-                            A refined, branded Google Site with a polished, professional layout. Includes light copy polish
-                            and a more tailored structure to support your offers.
+                            A refined, branded Google Site with a polished, professional layout.
+                            Includes light copy polish and a more intentional site structure to support your offers.
                             <br><br>
-                            <strong>Best for:</strong> businesses ready to look established and trustworthy online with
-                            a clearly structured, on-brand home base.
+                            <strong>Included:</strong> custom-designed Google Site (up to 4 pages),
+                            branded layout, basic SEO, and free Google Site URL/subdomain.
+                            <br>
+                            <strong>Best for:</strong> businesses ready to look established and trustworthy online
+                            with an on-brand home base.
                             <br><br>
-                            <strong>Suggested add-ons:</strong> additional page +$175, simple booking integration +$250,
-                            or Full Page From Scratch (copy + SEO + build) at $300/page.
+                            <strong>Suggested add-ons:</strong> additional page +$175,
+                            simple booking integration +$250, or
+                            <em>Full Page From Scratch</em> (copy + SEO + build) at
+                            <strong>$300 per page</strong>.
                             <br>
-                            <strong>Brand Kit bundle:</strong> $400 (20% off).
+                            <strong>Brand Kit bundle:</strong> <strong>$400</strong> (20% off standard Brand Kit price).
                             <br>
-                            <strong>Revisions & support:</strong> 2 rounds of consolidated revisions, 30 days of launch
-                            support (up to ~2 hours of tweaks), and one 30-min follow-up call to review analytics & questions.
+                            <strong>Revisions:</strong> 2 rounds of consolidated revisions
+                            (each round = one list of text tweaks, image swaps, and minor layout edits).
+                            <br>
+                            <strong>After-launch support:</strong> 30 days, up to ~2 hours of tweaks,
+                            plus <strong>1 × 30-min follow-up call</strong> around week 3–4
+                            to review analytics and answer questions.
                         </p>
                     </div>
                 </div>
@@ -139,27 +161,36 @@
                     <div class="package-content">
                         <span class="package-title">Professional Website</span>
                         <span class="package-price">$4,000</span>
-                        <div class="package-meta">6 Pages · 3–4 Weeks · Custom-coded</div>
+                        <div class="package-meta">Fully custom-coded · 6 pages · 3–4 weeks</div>
                         <p class="package-desc">
-                            A high-end, fully custom-built professional website with custom CSS, stronger SEO foundation,
-                            and domain setup — built to support real operations.
+                            A high-end, fully custom-built professional website with custom CSS, stronger SEO,
+                            and domain setup — built for growth and real operations.
                             <br><br>
-                            <strong>Best for:</strong> growing businesses needing bookings, analytics, and flexibility to evolve.
+                            <strong>Included:</strong> fully custom-coded site (6 pages) with custom CSS,
+                            basic SEO, and domain setup.
+                            <br>
+                            <strong>Best for:</strong> modern businesses that need their site to support
+                            bookings, analytics, and a stronger SEO base.
                             <br><br>
                             <strong>Suggested add-ons:</strong> extra page +$200, blog setup +$250,
-                            or Full Page From Scratch (copy + SEO + build) at $350/page.
+                            or <em>Full Page From Scratch</em> (copy + SEO + build) at
+                            <strong>$350 per page</strong>.
                             <br>
-                            <strong>Brand Kit bundle:</strong> $375 (25% off).
+                            <strong>Brand Kit bundle:</strong> <strong>$375</strong> (25% off standard Brand Kit price).
                             <br>
-                            <strong>Revisions & support:</strong> up to 3 rounds of revisions total
-                            (design + content + functionality), 45 days of launch support (up to ~3 hours of tweaks),
-                            and one 45-min follow-up call with basic analytics review.
+                            <strong>Revisions:</strong> up to 3 rounds total (design + content + functionality),
+                            appropriate for a higher-touch, fully custom-coded build.
+                            <br>
+                            <strong>After-launch support:</strong> 45 days, up to ~3 hours of tweaks and refinements
+                            (content + functionality), plus <strong>1 × 45-min follow-up call</strong>
+                            with a basic analytics review.
                         </p>
                     </div>
                 </div>
-            </div>
 
-            <!-- 2. Brand Kit (using your Brand Kit data) -->
+            </div> <!-- end .package-grid -->
+
+            <!-- 2. BRAND KIT (same bar layout, with your Brand Kit data) -->
             <h2 class="section-title" style="margin-top:50px;">2. Brand Kit (Optional)</h2>
 
             <div class="brand-kit-bar" id="brand-kit-bar" onclick="toggleBrandKit(this)">
@@ -168,8 +199,15 @@
                     <p class="kit-features">
                         Logo Suite, Brand Colors &amp; Typography, Brand Persona &amp; Target Customer.
                         <br>
-                        Includes: primary, secondary &amp; icon logo; 4–6 brand colors; 3–4 fonts; simple PDF guide
-                        and basics like business card design.
+                        <strong>Logo Suite:</strong> primary, secondary, and icon logo delivered in multiple formats.
+                        <br>
+                        <strong>Brand Colors &amp; Typography:</strong> 4–6 brand colors and 3–4 fonts
+                        organized in a simple PDF guide, plus business card design.
+                        <br>
+                        <strong>Brand Identity &amp; Target Customer:</strong> written brand persona,
+                        target audience, mission, tone, and guidance on how to use them.
+                        <br><br>
+                        <strong>Standalone:</strong> $500 · approx. 1 week.
                     </p>
                 </div>
                 <div class="kit-price-block">
@@ -179,16 +217,18 @@
                 </div>
             </div>
 
-            <p style="font-size:0.85rem; color:var(--text-light); opacity:0.7; margin-top:15px;">
-                *When bundled with a website package, your Brand Kit price updates automatically to the special
-                bundle rate for that package (Basic: $425, Polished: $400, Professional: $375).*
+            <p style="font-size:0.85rem; color:var(--text-light); opacity:0.7; margin-top:15px; max-width:700px;">
+                When paired with a website package, your Brand Kit total automatically updates to:
+                <strong>$425</strong> with the Basic Website,
+                <strong>$400</strong> with the Polished Brand Site, and
+                <strong>$375</strong> with the Professional Website.
             </p>
 
-            <!-- 3. Website structure & add-ons (same layout as original site) -->
+            <!-- 3. WEBSITE STRUCTURE & ADD-ONS (same feel as original sitemap/add-ons section) -->
             <div id="addons-section" class="hidden">
                 <hr class="divider">
 
-                <!-- Sitemap / pages -->
+                <!-- Sitemap -->
                 <h2 class="section-title">3. Website Structure &amp; Extras</h2>
 
                 <div class="sitemap-builder">
@@ -196,16 +236,17 @@
                     <p>
                         Let’s list the pages you need. Your selected package includes
                         <strong id="included-pages-count">0</strong> pages.
-                        <br>
-                        Additional pages are $<span id="extra-page-unit-cost">150</span>/ea
-                        (simple additional pages – we’ll confirm the exact type on our call).
+                        Additional pages are
+                        $<span id="extra-page-unit-cost">150</span>/ea
+                        (for standard additional pages — we’ll confirm the exact type on our call).
                     </p>
 
                     <div class="page-input-group">
-                        <input type="text"
-                               id="newPageName"
-                               placeholder="e.g. Services, About, Portfolio"
-                               onkeypress="handleEnter(event)">
+                        <input
+                            type="text"
+                            id="newPageName"
+                            placeholder="e.g. Home, Services, About, Contact"
+                            onkeypress="handleEnter(event)">
                         <button class="btn btn-add" type="button" onclick="addPage()">+ Add Page</button>
                     </div>
 
@@ -217,11 +258,11 @@
                     </div>
                 </div>
 
-                <!-- Functional add-ons (same pill layout as old site) -->
+                <!-- Functional add-ons -->
                 <div style="margin-top:40px;">
                     <h3>Functionality &amp; Services</h3>
                     <p style="font-size:0.9rem; color:var(--text-light); opacity:0.7; margin-bottom:15px;">
-                        We’ll finalize these together. You can pre-select anything that feels aligned:
+                        You can pre-select anything that feels aligned. We’ll finalize exactly what’s needed together.
                     </p>
 
                     <div class="addons-list">
@@ -263,7 +304,7 @@
                 </div>
             </div>
 
-            <!-- Nav buttons -->
+            <!-- NAV BUTTONS -->
             <div class="step-nav-buttons" style="margin-top:40px; display:flex; justify-content:space-between;">
                 <button class="btn btn-secondary" type="button" onclick="nextStep(1)">
                     &larr; Back: Business Goals
@@ -272,21 +313,22 @@
                     Next: Action Plan &rarr;
                 </button>
             </div>
+
         </div>
     </div>
 
-    <!-- Shared JS -->
+    <!-- Shared JS behaviours -->
     <script src="script.js"></script>
 
-    <!-- Step 2 restore logic (uses your current shared script.js) -->
+    <!-- Step 2 restore logic -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Load saved state from localStorage (from script.js)
+        // Load shared onboarding state
         if (window.loadState) {
             window.loadState();
         }
 
-        // Restore package selection
+        // Restore selected package & brand kit
         if (window.state && window.state.package) {
             const pkg = window.state.package;
 
@@ -297,13 +339,11 @@
                 selectedCard.classList.add('selected');
             }
 
-            // Show addons section
             const addonsSection = document.getElementById('addons-section');
             if (addonsSection) {
                 addonsSection.classList.remove('hidden');
             }
 
-            // Included pages & extra page rate
             const incEl = document.getElementById('included-pages-count');
             if (incEl) incEl.textContent = pkg.includedPages;
 
@@ -312,19 +352,17 @@
                 rateEl.textContent = pkg.extraPageCost;
             }
 
-            // Brand kit selection
             if (window.state.brandKit) {
                 const bar = document.getElementById('brand-kit-bar');
                 if (bar) bar.classList.add('selected');
             }
 
-            // Rebuild page list
             if (window.renderPageList) {
                 window.renderPageList();
             }
         }
 
-        // Restore add-on pills visual state
+        // Restore add-on pills
         if (window.state && Array.isArray(window.state.addons)) {
             window.state.addons.forEach(function (addon) {
                 const pill = document.querySelector(
@@ -336,7 +374,7 @@
             });
         }
 
-        // Show goal from Step 1 in widget if saved
+        // Show stored goal from Step 1 in widget
         const storedGoal = localStorage.getItem('mainGoal');
         if (storedGoal) {
             const goalDisplay = document.getElementById('fw-goal-display');
@@ -346,7 +384,7 @@
             }
         }
 
-        // Update Brand Kit pricing + invoice totals
+        // Ensure Brand Kit + totals are correct
         if (window.updateBrandKitDisplay) {
             window.updateBrandKitDisplay();
         }
@@ -355,5 +393,6 @@
         }
     });
     </script>
+
 </body>
 </html>
