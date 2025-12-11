@@ -450,3 +450,316 @@ select option {
     background: var(--input-bg);
     color: var(--text-light);
 }
+/* =========================================================
+   STEP 2: PACKAGES + BRAND KIT + PAGE BUILDER + ADD-ONS
+   ========================================================= */
+
+/* Shared section heading for Step 2  */
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 1.7rem;
+    font-weight: 400;
+    color: var(--accent-blue);
+    margin: 40px 0 20px;
+}
+
+/* Simple intro area used on Step 2 */
+.intro-block {
+    margin-bottom: 40px;
+}
+
+/* Divider line between main blocks */
+.divider {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 50px 0 30px;
+}
+
+/* ---------- PACKAGE CARD GRID + STACK ---------- */
+
+/* Wrapper so package cards appear on a "shelf" above Brand Kit */
+.package-stack {
+    position: relative;
+    margin-bottom: 70px;
+}
+
+/* Grid holding the three packages */
+.package-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    margin-bottom: 0; /* Brand Kit will visually tuck under this */
+}
+
+/* Individual package card */
+.package-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.package-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-blue);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+.package-card.selected {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 22px rgba(31, 127, 181, 0.4);
+}
+
+/* IMAGE / VISUAL AREA AT TOP OF CARD */
+.package-img-placeholder {
+    height: 130px;
+    background: radial-gradient(circle at top left, rgba(31,127,181,0.3), transparent),
+                radial-gradient(circle at bottom right, rgba(255,255,255,0.06), transparent);
+    border-bottom: 1px solid var(--border);
+}
+
+/* If you add an <img> inside, make it fill the placeholder nicely */
+.package-img-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Content area under the image */
+.package-content {
+    padding: 18px 18px 20px;
+}
+
+.package-title {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+}
+
+.package-price {
+    float: right;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--accent-blue);
+    margin-left: 8px;
+}
+
+.package-meta {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    margin-bottom: 10px;
+}
+
+.package-desc {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    line-height: 1.5;
+    clear: both;
+}
+
+/* ---------- BRAND KIT BAR (RECTANGLE BASE) ---------- */
+
+.brand-kit-bar {
+    position: relative;
+    z-index: 1;
+    margin: -30px auto 0; /* pull up so cards look like they sit on it */
+    max-width: 900px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 26px 24px 22px;
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.brand-kit-bar:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 24px rgba(31, 127, 181, 0.25);
+}
+
+.brand-kit-bar.selected {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 30px rgba(31, 127, 181, 0.4);
+}
+
+.kit-details .kit-title {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+}
+
+.kit-details .kit-features {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+/* Price stack on right side of Brand Kit */
+.kit-price-block {
+    text-align: right;
+}
+
+.kit-price-block .og-price {
+    display: none; /* turned on by JS when bundle price is active */
+    font-size: 0.85rem;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.kit-price-block .discount-label {
+    display: none;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent-blue);
+    margin-bottom: 4px;
+}
+
+.kit-price-block .final-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+/* ---------- PAGE BUILDER (SITEMAP) ---------- */
+
+.sitemap-builder {
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 24px 22px;
+    margin-top: 10px;
+}
+
+.sitemap-builder h3 {
+    margin-bottom: 6px;
+}
+
+.sitemap-builder p {
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+    opacity: 0.85;
+}
+
+.page-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.page-input-group input {
+    flex: 1;
+}
+
+.page-list {
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+}
+
+.page-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.remove-page {
+    cursor: pointer;
+    font-size: 1.1rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.remove-page:hover {
+    opacity: 1;
+}
+
+.page-summary {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.extra-cost-tag {
+    font-size: 0.78rem;
+    color: var(--accent-blue);
+}
+
+/* ---------- ADD-ON PILL LIST ---------- */
+
+.addons-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.addon-pill {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.01);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.addon-pill:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 12px rgba(31, 127, 181, 0.4);
+    transform: translateY(-1px);
+}
+
+.addon-pill.selected {
+    background: rgba(31, 127, 181, 0.15);
+    border-color: var(--accent-blue);
+}
+
+.addon-name {
+    font-weight: 500;
+}
+
+.addon-price {
+    opacity: 0.8;
+}
+
+/* ---------- RESPONSIVE TWEAKS ---------- */
+
+@media (max-width: 768px) {
+    .brand-kit-bar {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+
+    .kit-price-block {
+        text-align: left;
+    }
+
+    .container {
+        margin: 30px auto;
+        padding: 0 18px;
+    }
+
+    .welcome-grid {
+        grid-template-columns: 1fr;
+    }
+}
