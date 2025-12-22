@@ -117,7 +117,6 @@
                 </div>
             </div>
 
-
             <hr style="border:0; border-top:1px solid var(--border); margin:50px 0 40px;" />
 
             <div style="margin-bottom:30px;">
@@ -165,22 +164,26 @@
             </div>
 
             <div class="intake-card">
-                <div class="checkbox-grid" id="systemsAddons">
-                    <label class="checkbox-item">
+                <!-- Re-uses Step 2 pill styles -->
+                <div class="addons-list systems-pill-list" id="systemsAddons">
+                    <label class="addon-pill system-pill">
                         <input type="checkbox" value="Booking">
-                        <span>Booking</span>
+                        <span class="addon-name">Booking</span>
                     </label>
-                    <label class="checkbox-item">
+
+                    <label class="addon-pill system-pill">
                         <input type="checkbox" value="Scheduling">
-                        <span>Scheduling</span>
+                        <span class="addon-name">Scheduling</span>
                     </label>
-                    <label class="checkbox-item">
+
+                    <label class="addon-pill system-pill">
                         <input type="checkbox" value="Inventory">
-                        <span>Inventory</span>
+                        <span class="addon-name">Inventory</span>
                     </label>
-                    <label class="checkbox-item">
+
+                    <label class="addon-pill system-pill">
                         <input type="checkbox" value="CRM">
-                        <span>CRM</span>
+                        <span class="addon-name">CRM</span>
                     </label>
                 </div>
             </div>
@@ -196,33 +199,30 @@
 
 <script src="script.js"></script>
 <script>
-// STEP 1 – autosave & goal tracker
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Bring back any saved intake values
+    // Restore saved intake values
     const inputs = document.querySelectorAll('.save-me');
     inputs.forEach(input => {
         const saved = localStorage.getItem(input.id);
-        if (saved !== null) {
-            input.value = saved;
-        }
+        if (saved !== null) input.value = saved;
+
         input.addEventListener('input', function () {
             localStorage.setItem(this.id, this.value);
-            if (this.classList.contains('goal-tracker')) {
-                updateGoalTracker();
-            }
+            if (this.classList.contains('goal-tracker')) updateGoalTracker();
+        });
+
+        input.addEventListener('change', function () {
+            localStorage.setItem(this.id, this.value);
+            if (this.classList.contains('goal-tracker')) updateGoalTracker();
         });
     });
 
     initSystemsAddons();
     updateGoalTracker();
 
-    // 2. Load shared onboarding state for the widget totals
-    if (window.loadState) {
-        window.loadState();
-    }
-    if (window.calculateTotal) {
-        window.calculateTotal();
-    }
+    // Load shared onboarding state for the widget totals
+    if (window.loadState) window.loadState();
+    if (window.calculateTotal) window.calculateTotal();
 });
 
 function updateGoalTracker() {
@@ -253,6 +253,13 @@ function initSystemsAddons() {
     const checkboxes = Array.from(container.querySelectorAll('input[type="checkbox"]'));
     if (!checkboxes.length) return;
 
+    const syncSelectedClasses = () => {
+        checkboxes.forEach(cb => {
+            const pill = cb.closest('.system-pill');
+            if (pill) pill.classList.toggle('selected', cb.checked);
+        });
+    };
+
     // Restore saved selections
     try {
         const saved = localStorage.getItem('systemsAddons');
@@ -266,10 +273,13 @@ function initSystemsAddons() {
         console.warn('Could not restore systemsAddons:', e);
     }
 
+    syncSelectedClasses();
+
     // Save on change
     const save = () => {
         const selected = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
         localStorage.setItem('systemsAddons', JSON.stringify(selected));
+        syncSelectedClasses();
     };
 
     checkboxes.forEach(cb => cb.addEventListener('change', save));
@@ -296,3 +306,4 @@ function resetForm() {
 
 </body>
 </html>
+
