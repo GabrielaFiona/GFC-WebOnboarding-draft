@@ -11,7 +11,9 @@
 
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+
+<!-- Add a scoped body class so header layout changes only affect Step 1 -->
+<body class="step1">
 
 <!-- FLOATING INVOICE WIDGET (shared) -->
 <div id="floating-widget" class="collapsed">
@@ -19,7 +21,9 @@
         <span>ESTIMATED TOTAL</span>
         <span id="fw-header-total">$0</span>
     </div>
-    <div class="fw-goal" id="fw-goal-display" style="display:none;"></div>
+
+    <!-- Removed fw-goal display from widget on Step 1 -->
+
     <div class="fw-content">
         <div id="fw-items">
             <p style="font-size:0.8rem; color:#666; font-style:italic;">Items added will appear here...</p>
@@ -53,19 +57,19 @@
             4 <div class="step-label">Finalize Plan</div>
         </div>
     </div>
+
+    <!-- NEW: header goals shown under progress bar -->
+    <div id="header-goals" class="header-goals" style="display:none;">
+        <div class="header-goals-title">Selected Goals</div>
+        <div class="header-goals-chips">
+            <span id="header-goal-website" class="goal-chip" style="display:none;"></span>
+            <span id="header-goal-business" class="goal-chip" style="display:none;"></span>
+        </div>
+    </div>
 </div>
 
 <div class="container">
     <div id="step-1" class="step-section active">
-
-        <!-- NEW: GOAL SUMMARY AT TOP (shows selected goals only, no notes) -->
-        <div id="goal-summary" class="goal-summary-bar" style="display:none;">
-            <div class="goal-summary-title">Selected Goals</div>
-            <div class="goal-summary-chips">
-                <span id="goal-chip-website" class="goal-chip" style="display:none;"></span>
-                <span id="goal-chip-business" class="goal-chip" style="display:none;"></span>
-            </div>
-        </div>
 
         <div class="welcome-grid">
             <div class="welcome-text">
@@ -173,7 +177,6 @@
             </div>
 
             <div class="intake-card">
-                <!-- Re-uses Step 2 pill styles -->
                 <div class="addons-list systems-pill-list" id="systemsAddons">
                     <label class="addon-pill system-pill">
                         <input type="checkbox" value="Booking">
@@ -196,7 +199,6 @@
                     </label>
                 </div>
 
-                <!-- NEW: Notes for systems add-ons -->
                 <div style="margin-top:18px;">
                     <label>Systems Add-ons Notes (Optional)</label>
                     <textarea id="systemsAddonsNotes" rows="3" class="save-me" placeholder="Anything specific you want integrated (tools, preferences, or requirements)?"></textarea>
@@ -215,7 +217,6 @@
 <script src="script.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Restore saved intake values
     const inputs = document.querySelectorAll('.save-me');
     inputs.forEach(input => {
         const saved = localStorage.getItem(input.id);
@@ -247,29 +248,13 @@ function updateGoalTracker() {
     const websiteGoal = websiteGoalEl ? websiteGoalEl.value : '';
     const businessGoal = businessGoalEl ? businessGoalEl.value : '';
 
-    // 1) Update the floating widget goal display (existing behavior)
-    const goalDisplay = document.getElementById('fw-goal-display');
-    if (goalDisplay) {
-        let text = '';
-        if (websiteGoal) text += 'Website Goal: ' + websiteGoal;
-        if (businessGoal) text += (text ? '  •  ' : '') + 'Business Goal: ' + businessGoal;
-
-        if (text) {
-            goalDisplay.textContent = text;
-            goalDisplay.style.display = 'block';
-        } else {
-            goalDisplay.style.display = 'none';
-        }
-    }
-
-    // 2) Update the top-of-page Goal Summary (NEW)
-    const summary = document.getElementById('goal-summary');
-    const chipWebsite = document.getElementById('goal-chip-website');
-    const chipBusiness = document.getElementById('goal-chip-business');
+    // Header goals (under progress bar)
+    const headerWrap = document.getElementById('header-goals');
+    const chipWebsite = document.getElementById('header-goal-website');
+    const chipBusiness = document.getElementById('header-goal-business');
 
     const any = !!(websiteGoal || businessGoal);
-
-    if (summary) summary.style.display = any ? 'flex' : 'none';
+    if (headerWrap) headerWrap.style.display = any ? 'flex' : 'none';
 
     if (chipWebsite) {
         if (websiteGoal) {
@@ -304,7 +289,6 @@ function initSystemsAddons() {
         });
     };
 
-    // Restore saved selections
     try {
         const saved = localStorage.getItem('systemsAddons');
         if (saved) {
@@ -319,7 +303,6 @@ function initSystemsAddons() {
 
     syncSelectedClasses();
 
-    // Save on change
     const save = () => {
         const selected = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
         localStorage.setItem('systemsAddons', JSON.stringify(selected));
@@ -342,7 +325,7 @@ function resetForm() {
         localStorage.removeItem('businessGoal');
         localStorage.removeItem('businessGoalNotes');
         localStorage.removeItem('systemsAddons');
-        localStorage.removeItem('systemsAddonsNotes');  // NEW
+        localStorage.removeItem('systemsAddonsNotes');
         localStorage.removeItem('onboardingState');
         location.reload();
     }
