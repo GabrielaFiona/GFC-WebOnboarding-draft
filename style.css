@@ -403,3 +403,27 @@ select option { background: #0f1322; color: var(--text-main); }
   h1 { font-size: 2.5rem; }
   .container { margin: 30px auto; }
 }
+/* Add this to style.css */
+
+.custom-branding-wrapper {
+  margin-top: 15px;
+}
+
+.custom-brand-name, .custom-brand-price {
+  background: var(--surface-base);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 10px;
+  border-radius: 6px;
+  width: 100%;
+}
+.custom-brand-name:focus, .custom-brand-price:focus {
+  border-color: var(--accent-blue);
+  outline: none;
+}
+
+.brand-kit-ref.selected {
+  background: var(--surface-active);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px var(--accent-blue);
+}
