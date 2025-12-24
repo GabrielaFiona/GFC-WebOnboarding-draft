@@ -214,7 +214,14 @@
                 <div class="form-grid">
                   <div class="full-width">
                     <label>Upload Materials</label>
+                    <p style="font-size:0.8rem; margin-bottom:8px;">Uploads are processed locally. Download them below to save them to your computer.</p>
                     <input type="file" id="brandingUploads" multiple />
+                    
+                    <div id="file-staging-box" class="file-staging-area hidden">
+                      <div style="font-size:0.75rem; color:var(--accent-blue); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Ready to Download</div>
+                      <div id="file-list-content"></div>
+                    </div>
+
                   </div>
                   <div class="full-width">
                     <label>Notes</label>
@@ -278,13 +285,14 @@
 
   <script src="script.js"></script>
   <script>
-    /* PRESERVED LOGIC */
+    /* PAGE SPECIFIC LOGIC */
     document.addEventListener('DOMContentLoaded', function () {
       if (window.loadState) window.loadState();
 
       if (window.state && window.state.package && window.state.package.id) {
         const selected = document.querySelector('.package-card[data-package-id="' + window.state.package.id + '"]');
         if (selected) selected.classList.add('selected');
+        // Restore without forcing open
         handlePackageSelected(true);
       }
 
@@ -309,6 +317,13 @@
       }
       restoreBrandingProvided();
       initLocalAutosave(['brandingProvidedNotes','customBrandingName','customBrandingPrice']);
+      
+      // Initialize file upload listener
+      const fileInput = document.getElementById('brandingUploads');
+      if (fileInput) {
+        fileInput.addEventListener('change', handleFileUpload);
+      }
+
       if (window.calculateTotal) window.calculateTotal();
     });
 
@@ -317,11 +332,15 @@
       const unlocked = document.getElementById('brandingUnlocked');
       if (notice) notice.classList.add('hidden');
       if (unlocked) unlocked.classList.remove('hidden');
+      
       const branding = document.getElementById('brandingSection');
-      if (branding) {
+      if (branding && !isRestore) {
+        // Only automatically open branding if it's the first time selecting
+        // Otherwise, respect the user's closed state
         branding.classList.remove('collapsed');
-        if (!isRestore && window.initCollapsibles) window.initCollapsibles(); 
       }
+      // Re-init collapsibles to ensure listeners are active
+      if (window.initCollapsibles) window.initCollapsibles(); 
       if (window.updateBrandKitDisplay) window.updateBrandKitDisplay();
     }
 
@@ -348,6 +367,41 @@
         updateBrandingPanels(e.target.value);
       }
     });
+
+    // File Upload Logic
+    function handleFileUpload(e) {
+      const files = e.target.files;
+      const box = document.getElementById('file-staging-box');
+      const list = document.getElementById('file-list-content');
+      
+      if (!files.length) {
+        box.classList.add('hidden');
+        return;
+      }
+      
+      box.classList.remove('hidden');
+      list.innerHTML = ''; // Clear previous
+
+      Array.from(files).forEach(file => {
+        const row = document.createElement('div');
+        row.className = 'file-list-item';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = file.name;
+        
+        // Create local download URL
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.name;
+        link.className = 'btn-download-mini';
+        link.textContent = 'Download';
+        
+        row.appendChild(nameSpan);
+        row.appendChild(link);
+        list.appendChild(row);
+      });
+    }
 
     function toggleCustomBranding(pill) {
       const panel = document.getElementById('customBrandingPanel');
