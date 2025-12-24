@@ -1,130 +1,191 @@
 // --- STATE MANAGEMENT ---
 const state = {
-  package: null,     // { id, name, price, includedPages, brandKitBundlePrice, extraPageCost }
-  brandKit: false,   // Boolean
-  pages: [],         // Array of page name strings
-  addons: []         // Array of { id, name, price }
+  package: null,     // { id, name, price, limit, extraPageCost, ... }
+  brandKit: false,
+  industry: "",      // Stores user industry input
+  pages: [],         // Array of page names
+  addons: [],
+  pagePlans: {}      // Stores Step 3 data: { "Home": { notes: "...", drawData: [...] } }
 };
 
 const BASE_BRAND_KIT_PRICE = 500;
 
-// --- STATE PERSISTENCE ---
+// Industries & Suggestions DB
+const SUGGESTION_DB = {
+  "restaurant": ["Menu", "Reservations", "Events", "About Us", "Gallery", "Catering"],
+  "boutique": ["Shop", "Lookbook", "About Us", "FAQ", "Press", "Returns"],
+  "contractor": ["Services", "Projects", "Testimonials", "About Us", "Get Quote"],
+  "hotel": ["Rooms", "Amenities", "Local Guide", "Booking", "Gallery"],
+  "ecommerce": ["Shop All", "New Arrivals", "About", "Shipping Info", "Track Order"],
+  "default": ["Home", "Contact", "About", "Services", "Gallery"]
+};
+
+// --- PERSISTENCE ---
 function saveState() {
-  try {
-    localStorage.setItem('onboardingState', JSON.stringify(state));
-  } catch (e) {
-    console.error('Error saving state:', e);
-  }
+  localStorage.setItem('onboardingState', JSON.stringify(state));
 }
 
 function loadState() {
-  try {
-    const raw = localStorage.getItem('onboardingState');
-    if (!raw) return;
-    const loaded = JSON.parse(raw);
-    Object.assign(state, loaded);
-  } catch (e) {
-    console.error('Error loading state:', e);
-  }
+  const raw = localStorage.getItem('onboardingState');
+  if (raw) Object.assign(state, JSON.parse(raw));
 }
 
 // --- NAVIGATION ---
 function nextStep(stepNumber) {
   saveState();
-  if (stepNumber >= 1 && stepNumber <= 4) window.location.href = `step${stepNumber}.html`;
-  else console.error('Invalid step number:', stepNumber);
+  window.location.href = `step${stepNumber}.html`;
 }
 
-// --- PACKAGE SELECTION ---
-function selectPackage(id, name, price, includedPages, brandKitBundlePrice, extraPageCost, element) {
+// --- STEP 2: PACKAGES & PAGE BUILDER ---
+function selectPackage(id, name, price, limit, brandKitBundlePrice, extraPageCost, element) {
   document.querySelectorAll('.package-card').forEach(el => el.classList.remove('selected'));
   if (element) element.classList.add('selected');
 
-  state.package = { id, name, price, includedPages, brandKitBundlePrice, extraPageCost };
-
+  state.package = { id, name, price, limit, brandKitBundlePrice, extraPageCost };
+  
+  // Initialize default pages if empty
+  if (state.pages.length === 0) {
+    state.pages = ['Home', 'Contact'];
+  }
+  
+  handlePackageSelected();
   calculateTotal();
   updateBrandKitDisplay();
+  updatePageBuilderUI(); // Refresh page builder limits
   saveState();
 }
 
-// --- BRAND KIT ---
-function toggleBrandKit(element) {
-  state.brandKit = !state.brandKit;
-  if (element) element.classList.toggle('selected', state.brandKit);
-
-  calculateTotal();
-  updateBrandKitDisplay();
-  saveState();
-}
-
-function updateBrandKitDisplay() {
-  const bar = document.getElementById('brand-kit-bar');
-  if (!bar) return;
-
-  const ogPriceEl = bar.querySelector('.og-price');
-  const discountLabelEl = bar.querySelector('.discount-label');
-  const finalPriceEl = bar.querySelector('.final-price');
-
-  if (!finalPriceEl) return;
-
-  const hasBundle = !!(state.package && state.package.brandKitBundlePrice);
-  const displayPrice = hasBundle ? Number(state.package.brandKitBundlePrice) : BASE_BRAND_KIT_PRICE;
-
-  // Show bundle pricing visually even if not selected yet (so it’s “shown at discounted price”)
-  if (hasBundle && displayPrice !== BASE_BRAND_KIT_PRICE) {
-    if (ogPriceEl) {
-      ogPriceEl.textContent = `$${BASE_BRAND_KIT_PRICE.toLocaleString()}`;
-      ogPriceEl.style.display = 'inline';
+function handlePackageSelected(isRestore) {
+  const notice = document.getElementById('brandingLockedNotice');
+  const unlocked = document.getElementById('brandingUnlocked');
+  const pageBuilder = document.getElementById('pageBuilderSection');
+  
+  if (notice) notice.classList.add('hidden');
+  if (unlocked) unlocked.classList.remove('hidden');
+  if (pageBuilder) {
+    pageBuilder.classList.remove('hidden');
+    // Open page builder automatically if first time
+    if (!isRestore) {
+      const pbCol = document.querySelector('[data-key="step2-pages"]');
+      if (pbCol) pbCol.classList.remove('collapsed');
     }
-    if (discountLabelEl) discountLabelEl.style.display = 'block';
-  } else {
-    if (ogPriceEl) ogPriceEl.style.display = 'none';
-    if (discountLabelEl) discountLabelEl.style.display = 'none';
   }
 
-  finalPriceEl.textContent = `$${displayPrice.toLocaleString()}`;
-  bar.classList.toggle('selected', !!state.brandKit);
+  const branding = document.getElementById('brandingSection');
+  if (branding && !isRestore) branding.classList.remove('collapsed');
+  
+  if (window.initCollapsibles) window.initCollapsibles(); 
 }
 
-// --- ADDONS ---
-function toggleAddon(id, name, price, element) {
-  if (element) element.classList.toggle('selected');
+// Page Builder Logic
+function initPageBuilder() {
+  const input = document.getElementById('industryInput');
+  if (!input) return;
 
-  const idx = state.addons.findIndex(a => a.id === id);
-  if (idx === -1) state.addons.push({ id, name, price: Number(price) || 0 });
-  else state.addons.splice(idx, 1);
+  // Render existing pages
+  renderActivePages();
 
-  calculateTotal();
-  saveState();
-}
+  input.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+      generateSuggestions(input.value);
+      state.industry = input.value;
+      saveState();
+    }
+  });
 
-// Helpers for custom-priced addons
-function upsertAddon(id, name, price) {
-  const idx = state.addons.findIndex(a => a.id === id);
-  const cleanPrice = Number(price) || 0;
-
-  if (cleanPrice <= 0) return;
-
-  if (idx === -1) state.addons.push({ id, name, price: cleanPrice });
-  else {
-    state.addons[idx].name = name;
-    state.addons[idx].price = cleanPrice;
+  if (state.industry) {
+    input.value = state.industry;
+    generateSuggestions(state.industry);
   }
-
-  calculateTotal();
-  saveState();
 }
 
-function removeAddonById(id) {
-  const idx = state.addons.findIndex(a => a.id === id);
-  if (idx !== -1) {
-    state.addons.splice(idx, 1);
+function generateSuggestions(query) {
+  const container = document.getElementById('suggestionChips');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  let found = false;
+  
+  // Find matching key
+  Object.keys(SUGGESTION_DB).forEach(key => {
+    if (query.toLowerCase().includes(key)) {
+      renderChips(SUGGESTION_DB[key], container);
+      found = true;
+    }
+  });
+
+  if (!found) renderChips(SUGGESTION_DB['default'], container);
+}
+
+function renderChips(pages, container) {
+  pages.forEach(page => {
+    const chip = document.createElement('div');
+    chip.className = 'suggestion-chip';
+    if (state.pages.includes(page)) chip.classList.add('added');
+    chip.textContent = `+ ${page}`;
+    chip.onclick = () => addPage(page);
+    container.appendChild(chip);
+  });
+}
+
+function addPage(nameRaw) {
+  const input = document.getElementById('customPageInput');
+  const name = nameRaw || input.value.trim();
+  
+  if (!name) return;
+  if (!state.pages.includes(name)) {
+    state.pages.push(name);
+    if (input) input.value = '';
+    renderActivePages();
+    generateSuggestions(state.industry || ''); // Refresh chips status
     calculateTotal();
     saveState();
   }
 }
 
-// --- INVOICE CALCULATION ---
+function removePage(name) {
+  state.pages = state.pages.filter(p => p !== name);
+  renderActivePages();
+  generateSuggestions(state.industry || '');
+  calculateTotal();
+  saveState();
+}
+
+function renderActivePages() {
+  const list = document.getElementById('activePagesList');
+  const countEl = document.getElementById('pageCountDisplay');
+  const warning = document.getElementById('pageLimitWarning');
+  
+  if (!list || !state.package) return;
+  
+  list.innerHTML = '';
+  state.pages.forEach(page => {
+    const tag = document.createElement('div');
+    tag.className = 'page-tag';
+    tag.innerHTML = `${page} <span class="page-tag-remove" onclick="removePage('${page}')">&times;</span>`;
+    list.appendChild(tag);
+  });
+
+  const limit = state.package.limit;
+  const current = state.pages.length;
+  if (countEl) countEl.textContent = `${current}/${limit}`;
+
+  // Over limit logic
+  if (current > limit) {
+    const extra = current - limit;
+    const cost = extra * state.package.extraPageCost;
+    warning.innerHTML = `You are ${extra} page(s) over your limit. Added cost: <strong>$${cost}</strong>`;
+    warning.classList.add('visible');
+  } else {
+    warning.classList.remove('visible');
+  }
+}
+
+function updatePageBuilderUI() {
+  renderActivePages();
+}
+
+// --- CALCULATION ---
 function calculateTotal() {
   const fwItems = document.getElementById('fw-items');
   if (!fwItems) return;
@@ -135,6 +196,14 @@ function calculateTotal() {
   if (state.package) {
     html += `<div class="fw-item"><span>${state.package.name}</span><span>$${state.package.price.toLocaleString()}</span></div>`;
     total += state.package.price;
+
+    // Extra Pages
+    if (state.pages.length > state.package.limit) {
+      const extra = state.pages.length - state.package.limit;
+      const extraCost = extra * state.package.extraPageCost;
+      html += `<div class="fw-item"><span style="color:#ff6b6b">${extra} Extra Pages</span><span>$${extraCost.toLocaleString()}</span></div>`;
+      total += extraCost;
+    }
   }
 
   if (state.brandKit) {
@@ -158,7 +227,7 @@ function calculateTotal() {
 
   const headerTotalEl = document.getElementById('fw-header-total');
   if (headerTotalEl) headerTotalEl.textContent = `$${total.toLocaleString()}`;
-
+  
   const fullTotalEl = document.getElementById('fw-full-total');
   if (fullTotalEl) fullTotalEl.textContent = `$${total.toLocaleString()}`;
 
@@ -166,613 +235,263 @@ function calculateTotal() {
   if (depositEl) depositEl.textContent = `$${(total / 2).toLocaleString()}`;
 }
 
-// --- WIDGET ---
-function toggleWidget() {
-  const widget = document.getElementById('floating-widget');
-  if (!widget) return;
-  widget.classList.toggle('collapsed');
-}
-
-// --- COLLAPSIBLE SECTIONS (shared) ---
-function initCollapsibles() {
-  const sections = document.querySelectorAll('[data-collapsible]');
-  sections.forEach(section => {
-    const header = section.querySelector('[data-collapsible-header]');
-    if (!header) return;
-
-    // Prevent adding multiple listeners if re-initialized
-    if (header.hasAttribute('data-has-listener')) return;
-    header.setAttribute('data-has-listener', 'true');
-
-    const key = section.getAttribute('data-key') || section.id;
-    const storageKey = key ? `collapsible:${key}` : null;
-
-    // Restore state from local storage
-    if (storageKey) {
-      const saved = localStorage.getItem(storageKey);
-      if (saved === 'collapsed') {
-        section.classList.add('collapsed');
-      } else if (saved === 'open') {
-        section.classList.remove('collapsed');
-      }
-    }
-
-    // Click handler to toggle state
-    header.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent weird form submissions if any
-      const collapsed = section.classList.toggle('collapsed');
-      if (storageKey) localStorage.setItem(storageKey, collapsed ? 'collapsed' : 'open');
-    });
-  });
-}
-document.addEventListener('DOMContentLoaded', initCollapsibles);
-
-// --- PACKAGE DETAILS TOGGLE (Step 2 cards) ---
-function togglePackageDetails(buttonEl) {
-  const card = buttonEl.closest('.package-card');
-  if (!card) return;
-
-  const expanded = card.classList.toggle('expanded');
-  buttonEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-  buttonEl.textContent = expanded ? 'Close Details' : 'View Details';
-}
-
-// Expose globals
-window.state = state;
-window.BASE_BRAND_KIT_PRICE = BASE_BRAND_KIT_PRICE;
-window.saveState = saveState;
-window.loadState = loadState;
-window.nextStep = nextStep;
-window.selectPackage = selectPackage;
-window.toggleBrandKit = toggleBrandKit;
-window.toggleAddon = toggleAddon;
-window.calculateTotal = calculateTotal;
-window.updateBrandKitDisplay = updateBrandKitDisplay;
-window.toggleWidget = toggleWidget;
-window.initCollapsibles = initCollapsibles;
-window.togglePackageDetails = togglePackageDetails;
-window.upsertAddon = upsertAddon;
-window.removeAddonById = removeAddonById;
-
-/* =========================================
-   CONFIG & DATA
-   ========================================= */
-const CONSTANTS = {
-  EXTRA_PAGE_PRICE: 150, // Easy to change
-  PACKAGES: {
-    basic: { name: "Basic Website", included: 2, price: 1500 },
-    standard: { name: "Standard Website", included: 5, price: 2500 },
-    advanced: { name: "Advanced Website", included: 10, price: 4500 }
-  }
-};
-
-const INDUSTRY_DATA = {
-  "Restaurant / Cafe": {
-    basic: ["Home", "Contact", "Menu"],
-    standard: ["Home", "About", "Menu", "Reservations", "Contact", "Gallery"],
-    advanced: ["Home", "About", "Menu", "Reservations", "Online Ordering", "Events", "Reviews", "FAQ", "Contact", "Location"]
-  },
-  "Contractor / Trades": {
-    basic: ["Home", "Contact", "Services"],
-    standard: ["Home", "About", "Services", "Projects", "Testimonials", "Contact"],
-    advanced: ["Home", "About", "Services", "Service Areas", "Gallery", "Reviews", "Estimates", "FAQ", "Blog", "Contact"]
-  },
-  "Boutique / Retail": {
-    basic: ["Home", "Contact", "Products"],
-    standard: ["Home", "About", "Products", "New Arrivals", "FAQ", "Contact"],
-    advanced: ["Home", "About", "Shop", "Collections", "Lookbook", "Size Guide", "Reviews", "Contact", "Press"]
-  },
-  "E-commerce Brand": {
-    basic: ["Home", "Contact", "Shop"],
-    standard: ["Home", "About", "Shop", "Shipping/Returns", "FAQ", "Contact"],
-    advanced: ["Home", "About", "Shop", "Collections", "Support", "Returns", "Reviews", "Contact", "Order Tracking"]
-  },
-  "Hotel / Rental": {
-    basic: ["Home", "Contact", "Rooms"],
-    standard: ["Home", "Rooms", "Amenities", "Location", "Contact"],
-    advanced: ["Home", "Rooms", "Booking", "Amenities", "Gallery", "Local Guide", "Reviews", "FAQ", "Contact"]
-  },
-  "Real Estate": {
-    basic: ["Home", "Contact", "Listings"],
-    standard: ["Home", "About", "Listings", "Buyers", "Sellers", "Contact"],
-    advanced: ["Home", "About", "Listings", "Neighborhoods", "Testimonials", "FAQ", "Blog", "Contact", "Home Valuation"]
-  },
-  "Health / Wellness": {
-    basic: ["Home", "Contact", "Services"],
-    standard: ["Home", "About", "Services", "Pricing", "Contact"],
-    advanced: ["Home", "About", "Services", "Booking", "Team", "Gallery", "Reviews", "FAQ", "Contact"]
-  },
-  "General Business": { // Fallback
-    basic: ["Home", "Contact", "About"],
-    standard: ["Home", "About", "Services", "Testimonials", "Contact", "FAQ"],
-    advanced: ["Home", "About", "Services", "Case Studies", "Testimonials", "FAQ", "Blog", "Contact", "Privacy Policy"]
-  }
-};
-
-// Global State
-let state = {
-  client: { name: "", industry: "", industryPreview: [] },
-  package: { id: null, price: 0, included: 0 },
-  pages: [],
-  planning: {}, // Stores step 3 data
-  addons: [] // Branding, etc.
-};
-
-/* =========================================
-   CORE FUNCTIONS (Load/Save/Init)
-   ========================================= */
-document.addEventListener('DOMContentLoaded', () => {
-  loadState();
-  initCollapsibles();
-  initWidget();
-  
-  if (document.body.classList.contains('step1')) initStep1();
-  if (document.body.classList.contains('step2')) initStep2();
-  if (document.body.classList.contains('step3')) initStep3();
-  
-  calculateTotal();
-});
-
-function saveState() {
-  localStorage.setItem('onboardingState', JSON.stringify(state));
-  calculateTotal();
-}
-
-function loadState() {
-  const raw = localStorage.getItem('onboardingState');
-  if (raw) {
-    state = JSON.parse(raw);
-  }
-}
-
-function nextStep(step) {
-  saveState();
-  window.location.href = `step${step}.html`;
-}
-
-function calculateTotal() {
-  const fwItems = document.getElementById('fw-items');
-  const fwTotal = document.getElementById('fw-full-total');
-  const fwDeposit = document.getElementById('fw-deposit');
-  if (!fwItems) return;
-
-  let total = 0;
-  let html = '';
-
-  // Package Base
-  if (state.package.id) {
-    total += state.package.price;
-    html += `<div class="fw-item"><span>${CONSTANTS.PACKAGES[state.package.id].name}</span><span>$${state.package.price.toLocaleString()}</span></div>`;
-  }
-
-  // Extra Pages
-  const extraPages = Math.max(0, state.pages.length - state.package.included);
-  if (extraPages > 0) {
-    const cost = extraPages * CONSTANTS.EXTRA_PAGE_PRICE;
-    total += cost;
-    html += `<div class="fw-item"><span>Extra Pages (${extraPages})</span><span>$${cost.toLocaleString()}</span></div>`;
-  }
-
-  // Addons
-  state.addons.forEach(addon => {
-    total += addon.price;
-    html += `<div class="fw-item"><span>${addon.name}</span><span>$${addon.price}</span></div>`;
-  });
-
-  if (html === '') html = '<p class="empty-state" style="font-size:0.8rem; font-style:italic;">Select a package...</p>';
-  
-  fwItems.innerHTML = html;
-  fwTotal.textContent = `$${total.toLocaleString()}`;
-  fwDeposit.textContent = `$${(total/2).toLocaleString()}`;
-  
-  // Header Total
-  const headerTotal = document.getElementById('fw-header-total');
-  if (headerTotal) headerTotal.textContent = `$${total.toLocaleString()}`;
-}
-
-/* =========================================
-   STEP 1: GOALS & INDUSTRY PREVIEW
-   ========================================= */
-function initStep1() {
-  const indInput = document.getElementById('industryInput');
-  const previewBox = document.getElementById('industryPreviewChips');
-  
-  // Restore
-  if (state.client.industry) indInput.value = state.client.industry;
-  updateIndustryPreview(indInput.value);
-
-  indInput.addEventListener('input', (e) => {
-    state.client.industry = e.target.value;
-    updateIndustryPreview(e.target.value);
-    saveState();
-  });
-}
-
-function updateIndustryPreview(val) {
-  const previewBox = document.getElementById('industryPreviewChips');
-  if (!previewBox) return;
-  
-  // Fuzzy match industry
-  let match = "General Business";
-  const search = val.toLowerCase();
-  for (const key in INDUSTRY_DATA) {
-    if (search && key.toLowerCase().includes(search)) {
-      match = key;
-      break;
-    }
-  }
-  
-  // Just show Standard list as a teaser
-  const suggestions = INDUSTRY_DATA[match].standard;
-  previewBox.innerHTML = suggestions.map(s => `<span class="chip" style="cursor:default; opacity:0.8;">${s}</span>`).join('');
-}
-
-/* =========================================
-   STEP 2: PACKAGE & PAGE BUILDER
-   ========================================= */
-function initStep2() {
-  // 1. Package Selection
-  const cards = document.querySelectorAll('.package-card');
-  cards.forEach(card => {
-    card.addEventListener('click', () => {
-      const pid = card.dataset.packageId;
-      cards.forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      
-      const def = CONSTANTS.PACKAGES[pid];
-      state.package = { id: pid, price: def.price, included: def.included };
-      
-      // Auto-populate default pages if empty
-      if (state.pages.length === 0) {
-        state.pages = getDefaultPagesForPackage(pid, state.client.industry);
-      }
-      
-      updatePageBuilderUI();
-      saveState();
-    });
-  });
-
-  // Restore Package
-  if (state.package.id) {
-    const sel = document.querySelector(`.package-card[data-package-id="${state.package.id}"]`);
-    if (sel) sel.classList.add('selected');
-  }
-
-  // 2. Page Builder Inputs
-  const input = document.getElementById('pageInput');
-  const addBtn = document.getElementById('addPageBtn');
-  
-  addBtn.addEventListener('click', () => {
-    if (input.value.trim()) addPage(input.value.trim());
-    input.value = '';
-  });
-
-  input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      if (input.value.trim()) addPage(input.value.trim());
-      input.value = '';
-    }
-  });
-
-  updatePageBuilderUI();
-}
-
-function getDefaultPagesForPackage(pid, industryVal) {
-  let match = "General Business";
-  const search = (industryVal || "").toLowerCase();
-  for (const key in INDUSTRY_DATA) {
-    if (search && key.toLowerCase().includes(search)) {
-      match = key;
-      break;
-    }
-  }
-  // Return a slice so we don't modify the master list
-  return [...INDUSTRY_DATA[match][pid]]; 
-}
-
-function addPage(name) {
-  if (!state.pages.includes(name)) {
-    state.pages.push(name);
-    updatePageBuilderUI();
-    saveState();
-  }
-}
-
-function removePage(name) {
-  state.pages = state.pages.filter(p => p !== name);
-  updatePageBuilderUI();
-  saveState();
-}
-
-function updatePageBuilderUI() {
-  const container = document.getElementById('addedPagesContainer');
-  const suggestionContainer = document.getElementById('pageSuggestions');
-  const counterEl = document.getElementById('pageCountDisplay');
-  
-  if (!container) return; // Not on step 2
-
-  // Render Added Pages
-  container.innerHTML = '';
-  state.pages.forEach(page => {
-    const pill = document.createElement('div');
-    pill.className = 'page-pill';
-    pill.innerHTML = `${page} <span class="remove-page" onclick="removePage('${page}')">&times;</span>`;
-    container.appendChild(pill);
-  });
-
-  // Calculate Cost Logic
-  const included = state.package.included || 0;
-  const count = state.pages.length;
-  const extra = Math.max(0, count - included);
-  
-  let costHtml = `Pages: <strong>${count}</strong>`;
-  if (state.package.id) {
-    costHtml += ` / ${included} Included`;
-    if (extra > 0) {
-      costHtml += `<span class="cost-badge extra">+${extra} Extra ($${extra * CONSTANTS.EXTRA_PAGE_PRICE})</span>`;
-    } else {
-      costHtml += `<span class="cost-badge included">Included ✅</span>`;
-    }
-  }
-  counterEl.innerHTML = costHtml;
-
-  // Render Suggestions
-  if (state.package.id) {
-    let match = "General Business";
-    const search = (state.client.industry || "").toLowerCase();
-    for (const key in INDUSTRY_DATA) {
-      if (search && key.toLowerCase().includes(search)) {
-        match = key; break;
-      }
-    }
-    
-    // Get list for current package tier
-    const potential = INDUSTRY_DATA[match][state.package.id];
-    
-    // Filter out already added
-    const suggestions = potential.filter(p => !state.pages.includes(p));
-    
-    suggestionContainer.innerHTML = suggestions.map(s => 
-      `<span class="chip" onclick="addPage('${s}')"><span>+</span> ${s}</span>`
-    ).join('');
-  }
-}
-
-/* =========================================
-   STEP 3: PLANNING (DYNAMIC GENERATOR)
-   ========================================= */
+// --- STEP 3: PLAN & CANVAS LOGIC ---
 function initStep3() {
-  const container = document.getElementById('planningContainer');
-  const summary = document.getElementById('planSummary');
+  if (!document.body.classList.contains('step3')) return;
   
-  if (!state.package.id) {
-    container.innerHTML = "<p>Please select a package in Step 2 first.</p>";
-    return;
+  const container = document.getElementById('planContainer');
+  const pkgId = state.package ? state.package.id : 'basic';
+  
+  container.innerHTML = ''; // Clear
+
+  if (pkgId === 'basic') {
+    // BASIC: Notes only
+    renderBasicPlan(container);
+  } else if (pkgId === 'standard') {
+    // STANDARD: Visual Mockups
+    renderStandardPlan(container);
+  } else if (pkgId === 'advanced') {
+    // ADVANCED: Flowchart / Ecosystem
+    renderAdvancedPlan(container);
   }
-
-  // Summary
-  const extra = Math.max(0, state.pages.length - state.package.included);
-  summary.innerHTML = `
-    <strong>${CONSTANTS.PACKAGES[state.package.id].name}</strong> Plan<br/>
-    ${state.pages.length} Pages (${state.package.included} included, ${extra} extra)
-  `;
-
-  // Render Strategy
-  if (state.package.id === 'basic') renderBasicPlanning(container);
-  else if (state.package.id === 'standard') renderStandardPlanning(container);
-  else if (state.package.id === 'advanced') renderAdvancedPlanning(container);
 }
 
-// --- BASIC: Notes Only ---
-function renderBasicPlanning(container) {
-  state.pages.forEach(page => {
-    const id = page.replace(/\s+/g, '-').toLowerCase();
-    const existing = state.planning[id] || {};
-    
+function renderBasicPlan(container) {
+  state.pages.forEach((page, index) => {
+    const noteVal = state.pagePlans[page]?.notes || '';
     const html = `
-      <div class="collapsible">
-        <button class="collapsible-header">
-          <div class="collapsible-title" style="font-size:1.2rem;">${page}</div>
-          <span class="collapsible-chevron">▾</span>
-        </button>
-        <div class="collapsible-body" style="grid-template-rows: 1fr;"> <div class="collapsible-inner">
-            <label>Goal of this page</label>
-            <input type="text" placeholder="e.g. Get them to call me" onchange="savePlan('${id}', 'goal', this.value)" value="${existing.goal || ''}">
-            <label style="margin-top:15px;">Main Notes</label>
-            <textarea rows="3" onchange="savePlan('${id}', 'notes', this.value)">${existing.notes || ''}</textarea>
-            <label style="margin-top:15px;">Call to Action</label>
-            <select onchange="savePlan('${id}', 'cta', this.value)">
-              <option value="">Select...</option>
-              <option value="Call" ${existing.cta === 'Call' ? 'selected' : ''}>Call Us</option>
-              <option value="Form" ${existing.cta === 'Form' ? 'selected' : ''}>Fill Form</option>
-              <option value="Buy" ${existing.cta === 'Buy' ? 'selected' : ''}>Buy Now</option>
-            </select>
-          </div>
+      <div class="plan-card">
+        <div class="plan-card-header">
+          <span>${index + 1}. ${page}</span>
+        </div>
+        <div class="plan-card-body">
+          <label>Page Goals & Content Notes</label>
+          <textarea rows="5" oninput="savePageNote('${page}', this.value)" placeholder="What should be on this page?">${noteVal}</textarea>
         </div>
       </div>
     `;
     container.insertAdjacentHTML('beforeend', html);
   });
-  initCollapsibles(); // Re-bind listeners
 }
 
-// --- STANDARD: Visual Section Builder ---
-function renderStandardPlanning(container) {
-  // Create Tabs
-  const tabsHtml = `
-    <div class="plan-tabs" id="stdPlanTabs">
-      ${state.pages.map((p, i) => `<button class="plan-tab ${i===0?'active':''}" onclick="switchTab('${i}')">${p}</button>`).join('')}
-    </div>
-    <div id="stdPlanContent"></div>
-  `;
-  container.innerHTML = tabsHtml;
-  
-  // Render Modules (Hidden except first)
-  const contentBox = document.getElementById('stdPlanContent');
-  state.pages.forEach((page, i) => {
-    const id = page.replace(/\s+/g, '-').toLowerCase();
+function renderStandardPlan(container) {
+  const intro = `<div style="text-align:center; margin-bottom:30px;"><p>Use the drag-tool to sketch layout ideas for your pages.</p></div>`;
+  container.insertAdjacentHTML('beforeend', intro);
+
+  state.pages.forEach((page, index) => {
+    const id = `canvas-${index}`;
     const html = `
-      <div class="plan-module ${i===0?'active':''}" id="module-${i}">
-        <h4>Planning: ${page}</h4>
-        <div class="section-builder-container">
-          <div class="section-palette">
-            <p style="font-size:0.8rem; text-transform:uppercase;">Click to Add Section</p>
-            ${['Hero Section', 'Text Block', 'Gallery', 'Services List', 'Testimonials', 'FAQ', 'Contact Form', 'Map'].map(s => 
-              `<div class="draggable-section" onclick="addSectionToPage('${id}', '${s}')">+ ${s}</div>`
-            ).join('')}
+      <div class="plan-card">
+        <div class="plan-card-header">
+          <span>${page} Layout</span>
+        </div>
+        <div class="plan-card-body">
+          <div class="mockup-toolbar">
+            <button class="tool-btn" onclick="setTool('${id}', 'rect')">⬜</button>
+            <button class="tool-btn" onclick="setTool('${id}', 'text')">T</button>
+            <button class="tool-btn" onclick="clearCanvas('${id}')">🗑️</button>
           </div>
-          <div class="page-canvas" id="canvas-${id}">
-            ${(state.planning[id]?.sections || []).map(s => renderSectionCard(s)).join('')}
-            ${(!state.planning[id]?.sections) ? '<p style="opacity:0.5; text-align:center; padding-top:40px;">Add sections from the left...</p>' : ''}
+          <canvas id="${id}" class="canvas-container"></canvas>
+          <div style="margin-top:20px;">
+            <label>Specific Requirements</label>
+            <textarea rows="2" oninput="savePageNote('${page}', this.value)" placeholder="Notes...">${state.pagePlans[page]?.notes || ''}</textarea>
           </div>
         </div>
       </div>
     `;
-    contentBox.insertAdjacentHTML('beforeend', html);
+    container.insertAdjacentHTML('beforeend', html);
+    
+    // Init Canvas after render
+    setTimeout(() => initCanvas(id, page), 100);
   });
 }
 
-function addSectionToPage(pageId, sectionName) {
-  if (!state.planning[pageId]) state.planning[pageId] = { sections: [] };
-  if (!state.planning[pageId].sections) state.planning[pageId].sections = [];
-  
-  state.planning[pageId].sections.push(sectionName);
-  saveState();
-  
-  // Update UI immediately
-  const canvas = document.getElementById(`canvas-${pageId}`);
-  // Clear placeholder if exists
-  if (canvas.innerHTML.includes('Add sections')) canvas.innerHTML = '';
-  canvas.insertAdjacentHTML('beforeend', renderSectionCard(sectionName));
-}
+function renderAdvancedPlan(container) {
+  const intro = `<div style="text-align:center; margin-bottom:30px;">
+    <h2>Ecosystem Map</h2>
+    <p>Map out how your website connects to your business tools.</p>
+  </div>`;
+  container.insertAdjacentHTML('beforeend', intro);
 
-function renderSectionCard(name) {
-  return `<div class="canvas-item"><strong>${name}</strong><br/><input type="text" placeholder="Notes for this section..." style="margin-top:5px; font-size:0.85rem; padding:8px;"></div>`;
-}
-
-// --- ADVANCED: Advanced Tabs + Flowchart ---
-function renderAdvancedPlanning(container) {
-  // Tabs: Pages + System Map
-  const tabsHtml = `
-    <div class="plan-tabs">
-      <button class="plan-tab active" onclick="switchTab('map')">System Flowchart</button>
-      ${state.pages.map((p, i) => `<button class="plan-tab" onclick="switchTab('${i}')">${p}</button>`).join('')}
-    </div>
-    
-    <div class="plan-module active" id="module-map">
-      <p>Map your business flow (Integrations & Automations).</p>
-      <div style="margin-bottom:10px;">
-        <button class="btn btn-secondary" onclick="addFlowNode('Page')">+ Page</button>
-        <button class="btn btn-secondary" onclick="addFlowNode('Form')">+ Form</button>
-        <button class="btn btn-secondary" onclick="addFlowNode('Email')">+ Email</button>
-        <button class="btn btn-secondary" onclick="addFlowNode('Payment')">+ Payment</button>
-      </div>
-      <div class="flowchart-canvas" id="flowCanvas">
+  const html = `
+    <div class="integration-row">
+      <div class="plan-card">
+        <div class="plan-card-header">System Flowchart</div>
+        <div class="plan-card-body">
+          <div class="mockup-toolbar">
+            <button class="tool-btn" onclick="setTool('advancedCanvas', 'rect')">⬜</button>
+            <button class="tool-btn" onclick="setTool('advancedCanvas', 'line')">🔗</button>
+            <button class="tool-btn" onclick="clearCanvas('advancedCanvas')">🗑️</button>
+          </div>
+          <canvas id="advancedCanvas" class="canvas-container" style="height:600px;"></canvas>
         </div>
+      </div>
+      
+      <div class="integration-list">
+        <h4>Integrations</h4>
+        <p style="font-size:0.8rem;">Drag ideas onto the map or list them here.</p>
+        <div class="integration-item">Stripe / Payments</div>
+        <div class="integration-item">Mailchimp</div>
+        <div class="integration-item">Calendly</div>
+        <div class="integration-item">Google Analytics</div>
+        <div class="integration-item">Zapier</div>
+        <hr style="border:0; border-top:1px solid var(--border-light); margin:15px 0;">
+        <label>Technical Notes</label>
+        <textarea rows="10" id="advancedNotes" oninput="saveAdvancedNotes(this.value)" placeholder="Describe complex logic here...">${state.advancedNotes || ''}</textarea>
+      </div>
     </div>
-    
-    <div id="advPageModules"></div>
   `;
-  container.innerHTML = tabsHtml;
-
-  // Render Page Planner Modules
-  const modContainer = document.getElementById('advPageModules');
-  state.pages.forEach((page, i) => {
-    const id = page.replace(/\s+/g, '-').toLowerCase();
-    modContainer.insertAdjacentHTML('beforeend', `
-      <div class="plan-module" id="module-${i}">
-        <h4>Advanced Strategy: ${page}</h4>
-        <div class="form-grid">
-          <div><label>SEO Focus Keyword</label><input type="text"></div>
-          <div><label>Conversion Action</label>
-            <select><option>Book Call</option><option>Buy Product</option><option>Submit Form</option></select>
-          </div>
-          <div class="full-width">
-            <label>Integrations Required</label>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              ${['Booking', 'Payment', 'CRM', 'Analytics', 'Live Chat'].map(opt => `<label style="display:inline-flex; align-items:center; gap:5px; border:1px solid #333; padding:5px 10px; border-radius:4px;"><input type="checkbox"> ${opt}</label>`).join('')}
-            </div>
-          </div>
-        </div>
-      </div>
-    `);
-  });
-  
-  // Init default flow nodes based on pages
-  if (!state.planning.flowNodes) {
-    state.planning.flowNodes = [];
-    // Smart suggestions
-    state.pages.forEach((p, idx) => {
-      addFlowNode('Page', p, 20 + (idx*190), 50, false); // Stagger positions
-    });
-  }
-  renderFlowNodes();
+  container.insertAdjacentHTML('beforeend', html);
+  setTimeout(() => initCanvas('advancedCanvas', 'SYSTEM_FLOW'), 100);
 }
 
-// Simple Flowchart Logic
-function addFlowNode(type, label = '', x=20, y=20, save=true) {
-  if (!state.planning.flowNodes) state.planning.flowNodes = [];
-  const node = { id: Date.now(), type, label: label || type, x, y };
-  state.planning.flowNodes.push(node);
-  if (save) { saveState(); renderFlowNodes(); }
-}
-
-function renderFlowNodes() {
-  const canvas = document.getElementById('flowCanvas');
-  if (!canvas || !state.planning.flowNodes) return;
-  
-  canvas.innerHTML = state.planning.flowNodes.map(node => `
-    <div class="flow-node" style="left:${node.x}px; top:${node.y}px;" draggable="true" ondragend="updateNodePos(${node.id}, event)">
-      <div class="flow-node-header"><span>${node.type}</span> <span>::</span></div>
-      <input type="text" value="${node.label}" style="background:transparent; border:none; color:white; width:100%; font-size:0.9rem;" onchange="updateNodeLabel(${node.id}, this.value)">
-      <div class="flow-connector">Connects to... ▼</div>
-    </div>
-  `).join('');
-}
-
-function updateNodePos(id, e) {
-  const rect = document.getElementById('flowCanvas').getBoundingClientRect();
-  const nodeIdx = state.planning.flowNodes.findIndex(n => n.id === id);
-  if (nodeIdx > -1) {
-    state.planning.flowNodes[nodeIdx].x = e.clientX - rect.left - 90; // center offset
-    state.planning.flowNodes[nodeIdx].y = e.clientY - rect.top - 20;
-    saveState();
-    renderFlowNodes();
-  }
-}
-
-// Helpers
-function savePlan(pageId, field, value) {
-  if (!state.planning[pageId]) state.planning[pageId] = {};
-  state.planning[pageId][field] = value;
+function savePageNote(pageName, text) {
+  if (!state.pagePlans[pageName]) state.pagePlans[pageName] = {};
+  state.pagePlans[pageName].notes = text;
   saveState();
 }
 
-function switchTab(idx) {
-  document.querySelectorAll('.plan-tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.plan-module').forEach(m => m.classList.remove('active'));
-  
-  // Handle string ID (map) or index
-  if (idx === 'map') {
-    document.querySelector('button[onclick="switchTab(\'map\')"]').classList.add('active');
-    document.getElementById('module-map').classList.add('active');
-  } else {
-    document.querySelectorAll('.plan-tab')[parseInt(idx) + (document.getElementById('module-map')?1:0)].classList.add('active');
-    document.getElementById(`module-${idx}`).classList.add('active');
-  }
+function saveAdvancedNotes(text) {
+  state.advancedNotes = text;
+  saveState();
 }
 
-// Shared Collapsibles (keep existing logic)
-function initCollapsibles() {
-  document.querySelectorAll('.collapsible-header').forEach(btn => {
-    btn.onclick = () => {
-      const parent = btn.closest('.collapsible');
-      parent.classList.toggle('collapsed');
+// --- SIMPLE CANVAS LOGIC ---
+// Very basic drawing tool for "Paint-like" feel
+let activeTool = 'rect';
+let isDrawing = false;
+let startX, startY;
+
+function setTool(canvasId, tool) {
+  activeTool = tool;
+  // Visual feedback for buttons could be added here
+}
+
+function initCanvas(canvasId, storageKey) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  
+  // Resize logic
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+
+  ctx.strokeStyle = '#2CA6E0';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = 'rgba(44, 166, 224, 0.1)';
+  
+  // Restore if exists (simplified for MVP - usually requires complex object storage)
+  // For this demo, we won't fully persist canvas bitmap data as it gets huge in localStorage
+  
+  canvas.addEventListener('mousedown', e => {
+    isDrawing = true;
+    startX = e.offsetX;
+    startY = e.offsetY;
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if (!isDrawing) return;
+    if (activeTool === 'rect') {
+      // Simple preview (clearing messes up previous drawings in this simple implementation)
+      // For a real paint tool, we'd need a secondary canvas layer or object list
+    }
+  });
+
+  canvas.addEventListener('mouseup', e => {
+    if (!isDrawing) return;
+    isDrawing = false;
+    const endX = e.offsetX;
+    const endY = e.offsetY;
+    
+    ctx.beginPath();
+    if (activeTool === 'rect') {
+      ctx.rect(startX, startY, endX - startX, endY - startY);
+      ctx.fill();
+      ctx.stroke();
+    } else if (activeTool === 'line') {
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    } else if (activeTool === 'text') {
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px Montserrat';
+      ctx.fillText('Content Block', startX, startY);
+      ctx.fillStyle = 'rgba(44, 166, 224, 0.1)'; // Reset
     }
   });
 }
-function initWidget() {
-  document.querySelector('.fw-header').onclick = () => {
-    document.getElementById('floating-widget').classList.toggle('collapsed');
+
+function clearCanvas(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// --- SHARED UTILS ---
+function toggleBrandKit(element) {
+  state.brandKit = !state.brandKit;
+  if (element) element.classList.toggle('selected', state.brandKit);
+  calculateTotal();
+  updateBrandKitDisplay();
+  saveState();
+}
+
+function updateBrandKitDisplay() {
+  const bar = document.getElementById('brand-kit-bar');
+  if (!bar) return;
+  const ogPriceEl = bar.querySelector('.og-price');
+  const discountLabelEl = bar.querySelector('.discount-label');
+  const finalPriceEl = bar.querySelector('.final-price');
+  if (!finalPriceEl) return;
+
+  const hasBundle = !!(state.package && state.package.brandKitBundlePrice);
+  const displayPrice = hasBundle ? Number(state.package.brandKitBundlePrice) : BASE_BRAND_KIT_PRICE;
+
+  if (hasBundle && displayPrice !== BASE_BRAND_KIT_PRICE) {
+    if (ogPriceEl) { ogPriceEl.textContent = `$${BASE_BRAND_KIT_PRICE.toLocaleString()}`; ogPriceEl.style.display = 'inline'; }
+    if (discountLabelEl) discountLabelEl.style.display = 'block';
+  } else {
+    if (ogPriceEl) ogPriceEl.style.display = 'none';
+    if (discountLabelEl) discountLabelEl.style.display = 'none';
+  }
+  finalPriceEl.textContent = `$${displayPrice.toLocaleString()}`;
+  bar.classList.toggle('selected', !!state.brandKit);
+}
+
+function toggleWidget() {
+  const widget = document.getElementById('floating-widget');
+  if (widget) widget.classList.toggle('collapsed');
+}
+
+function togglePackageDetails(buttonEl) {
+  const card = buttonEl.closest('.package-card');
+  if (card) {
+    const expanded = card.classList.toggle('expanded');
+    buttonEl.textContent = expanded ? 'Close Details' : 'View Details';
   }
 }
+
+function initCollapsibles() {
+  const sections = document.querySelectorAll('[data-collapsible]');
+  sections.forEach(section => {
+    const header = section.querySelector('[data-collapsible-header]');
+    if (!header || header.hasAttribute('data-has-listener')) return;
+    header.setAttribute('data-has-listener', 'true');
+    header.addEventListener('click', (e) => {
+      e.preventDefault();
+      section.classList.toggle('collapsed');
+    });
+  });
+}
+
+// Global Init
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  initCollapsibles();
+  if (window.location.pathname.includes('step2')) {
+    initPageBuilder();
+    if(state.package) handlePackageSelected(true);
+  }
+  if (window.location.pathname.includes('step3')) initStep3();
+  calculateTotal();
+  updateBrandKitDisplay();
+});
