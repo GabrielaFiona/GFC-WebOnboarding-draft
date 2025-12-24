@@ -1,4 +1,4 @@
-=// --- STATE MANAGEMENT ---
+// --- STATE MANAGEMENT ---
 const state = {
   package: null,
   brandKit: false,
@@ -37,6 +37,7 @@ function loadState() {
 
 function nextStep(stepNumber) {
   saveState();
+  // This looks for step1.html, step2.html, etc. which matches your file list
   window.location.href = `step${stepNumber}.html`;
 }
 
@@ -47,6 +48,7 @@ function selectPackage(id, name, price, limit, brandKitBundlePrice, extraPageCos
 
   state.package = { id, name, price, limit, brandKitBundlePrice, extraPageCost };
   
+  // Default pages if none selected
   if (state.pages.length === 0) state.pages = ['Home', 'Contact'];
   
   handlePackageSelected();
@@ -107,6 +109,7 @@ function handleFileUpload(e) {
     row.className = 'file-list-item';
     const nameSpan = document.createElement('span');
     nameSpan.textContent = file.name;
+    // Create download link
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
@@ -289,9 +292,13 @@ function calculateTotal() {
 
 // --- STEP 3: PLAN & CANVAS LOGIC ---
 function initStep3() {
+  // SAFETY CHECK: Only run this if we are actually on Step 3
   if (!document.body.classList.contains('step3')) return;
+  
   const container = document.getElementById('planContainer');
+  // Default to advanced if checking that package, otherwise fallback to stored package
   const pkgId = state.package ? state.package.id : 'basic';
+  
   container.innerHTML = ''; 
   if (pkgId === 'basic') renderBasicPlan(container);
   else if (pkgId === 'standard') renderStandardPlan(container);
@@ -314,23 +321,16 @@ function renderBasicPlan(container) {
   });
 }
 
-// --- STANDARD PLAN (Package 2) ---
+// --- STANDARD PLAN (Layouts Only) ---
 function renderStandardPlan(container) {
   const intro = `<div style="text-align:center; margin-bottom:30px;"><p>Sketch your layout for Mobile and Desktop views.</p></div>`;
   container.insertAdjacentHTML('beforeend', intro);
-
-  renderSharedCanvasCards(container); // Reusable logic
-  
-  // Add "Download All" Button
-  const downloadAllBtn = `
-    <button class="btn-download-all" onclick="downloadAllProjectAssets()">
-      Download Full Project Assets
-    </button>
-  `;
+  renderSharedCanvasCards(container); 
+  const downloadAllBtn = `<button class="btn-download-all" onclick="downloadAllProjectAssets()">Download Full Project Assets</button>`;
   container.insertAdjacentHTML('beforeend', downloadAllBtn);
 }
 
-// --- ADVANCED PLAN (Package 3 - NEW) ---
+// --- ADVANCED PLAN (Flowchart + Strategy + Layouts) ---
 function renderAdvancedPlan(container) {
   // 1. Business Flowchart Section
   const flowchartHtml = `
@@ -373,29 +373,19 @@ function renderAdvancedPlan(container) {
   `;
   container.insertAdjacentHTML('beforeend', flowchartHtml);
 
-  // Initialize Flowchart Canvas
-  setTimeout(() => {
-    initCanvas('flowchartCanvas', 'flowGroup');
-    // Simple logic to persist flowchart if needed could go here
-  }, 100);
+  setTimeout(() => { initCanvas('flowchartCanvas', 'flowGroup'); }, 100);
 
-  // 2. Page Planner with Strategy Fields
+  // 2. Page Planner
   const intro = `<div style="text-align:center; margin:40px 0 30px 0;"><h2>Deep Dive: Page Planning</h2><p>Define strategy, SEO, and Layout for every page.</p></div>`;
   container.insertAdjacentHTML('beforeend', intro);
 
   renderSharedCanvasCards(container, true); // True = include strategy fields
 
-  // Add "Download All" Button
-  const downloadAllBtn = `
-    <button class="btn-download-all" onclick="downloadAllProjectAssets()">
-      Download Full Project Assets
-    </button>
-  `;
+  const downloadAllBtn = `<button class="btn-download-all" onclick="downloadAllProjectAssets()">Download Full Project Assets</button>`;
   container.insertAdjacentHTML('beforeend', downloadAllBtn);
 }
 
 
-// --- REUSABLE CANVAS CARD LOGIC (Used by Standard & Advanced) ---
 function renderSharedCanvasCards(container, isAdvanced = false) {
   state.pages.forEach((page, index) => {
     const mobileId = `cvs-m-${index}`;
@@ -449,9 +439,7 @@ function renderSharedCanvasCards(container, isAdvanced = false) {
           </div>
         </div>
         <div class="plan-card-body">
-          
           ${strategyHtml}
-
           <div class="mockup-toolbar" id="toolbar-${index}">
             <button class="tool-btn active" title="Pencil" onclick="setTool('${groupName}', 'pencil', this)">✏️</button>
             <button class="tool-btn" title="Box" onclick="setTool('${groupName}', 'box', this)">⬜</button>
@@ -488,19 +476,15 @@ function renderSharedCanvasCards(container, isAdvanced = false) {
                  </label>
                  <input id="file-input-${index}" type="file" multiple onchange="handlePageFileUpload('${page}', this, '${fileListId}')" />
               </div>
-              
               <div id="${fileListId}" class="mini-file-list"></div>
-              
               <button class="btn btn-secondary btn-download-mini" style="width:100%; margin-top:15px; padding:12px;" 
                 onclick="downloadPageAssets('${page}', '${mobileId}', '${desktopId}')">Download Sketch & Files ⇩</button>
             </div>
           </div>
-
         </div>
       </div>
     `;
     container.insertAdjacentHTML('beforeend', html);
-    
     setTimeout(() => {
       initCanvas(mobileId, groupName);
       initCanvas(desktopId, groupName);
@@ -529,26 +513,21 @@ function removePageFile(pageName, index, listId) {
 function renderPageFileList(pageName, listId) {
   const container = document.getElementById(listId);
   if (!container) return;
-  
   container.innerHTML = '';
   const files = pageAttachments[pageName] || [];
-  
   if (files.length === 0) {
     container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:5px;">No files attached</div>';
     return;
   }
-
   files.forEach((file, i) => {
     const div = document.createElement('div');
     div.className = 'page-file-item';
     div.innerHTML = `<span>📎 ${file.name}</span>`;
-    
     const delBtn = document.createElement('span');
     delBtn.innerHTML = '&times;';
     delBtn.className = 'delete-file-btn';
     delBtn.title = 'Remove File';
     delBtn.onclick = () => removePageFile(pageName, i, listId);
-    
     div.appendChild(delBtn);
     container.appendChild(div);
   });
@@ -556,18 +535,11 @@ function renderPageFileList(pageName, listId) {
 
 // --- DOWNLOAD LOGIC ---
 async function downloadAllProjectAssets() {
-  if (!confirm("This will download all sketches and attached files for every page. If your browser prompts, please allow multiple downloads.")) return;
-
+  if (!confirm("This will download all sketches and attached files. Allow multiple downloads?")) return;
   for (const page of state.pages) {
     const index = state.pages.indexOf(page);
-    const mobileId = `cvs-m-${index}`;
-    const desktopId = `cvs-d-${index}`;
-    
-    // Download Sketch
-    downloadPageSketchOnly(page, mobileId, desktopId);
-    await new Promise(r => setTimeout(r, 800)); // Delay to prevent blocking
-
-    // Download Files
+    downloadPageSketchOnly(page, `cvs-m-${index}`, `cvs-d-${index}`);
+    await new Promise(r => setTimeout(r, 800)); 
     const files = pageAttachments[page] || [];
     for (const file of files) {
       const link = document.createElement('a');
@@ -583,7 +555,6 @@ async function downloadAllProjectAssets() {
 
 function downloadPageAssets(pageName, mobileId, desktopId) {
   downloadPageSketchOnly(pageName, mobileId, desktopId);
-  
   const files = pageAttachments[pageName] || [];
   let delay = 500;
   files.forEach(file => {
@@ -628,7 +599,6 @@ function togglePlanCard(header) {
   card.classList.toggle('collapsed');
 }
 
-// REORDERING LOGIC
 function changePageOrder(oldIndex, newIndexStr) {
   const newIndex = parseInt(newIndexStr);
   if (oldIndex === newIndex) return;
@@ -692,17 +662,12 @@ function setTool(groupName, tool, btn) {
   }
 }
 
-// Special helper to "Stamp" text (like page names) onto the flowchart
 function stampTextOnCanvas(canvasId, text) {
   const canvas = document.getElementById(canvasId);
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  
-  // Randomize position slightly so they don't stack perfectly
   const x = 50 + Math.random() * 50;
   const y = 50 + Math.random() * 50;
-  
-  // Draw Box
   ctx.fillStyle = 'rgba(44, 166, 224, 0.1)';
   ctx.strokeStyle = '#2CA6E0';
   ctx.lineWidth = 2;
@@ -710,8 +675,6 @@ function stampTextOnCanvas(canvasId, text) {
   const height = 50;
   ctx.fillRect(x, y, width, height);
   ctx.strokeRect(x, y, width, height);
-  
-  // Draw Text
   ctx.fillStyle = '#fff';
   ctx.font = '14px Montserrat';
   ctx.textAlign = 'center';
@@ -727,24 +690,17 @@ function initCanvas(canvasId, groupName) {
   let isDrawing = false;
   let startX, startY;
 
-  ctx.strokeStyle = '#2CA6E0';
-  ctx.lineWidth = 3; 
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#2CA6E0'; ctx.lineWidth = 3; ctx.lineCap = 'round';
   ctx.fillStyle = 'rgba(44, 166, 224, 0.1)';
 
   canvas.addEventListener('mousedown', e => {
-    isDrawing = true;
-    startX = e.offsetX;
-    startY = e.offsetY;
+    isDrawing = true; startX = e.offsetX; startY = e.offsetY;
     const tool = canvasState[groupName].tool;
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
+    ctx.beginPath(); ctx.moveTo(startX, startY);
     if (tool === 'text') {
        const text = prompt("Enter text:", "Header");
        if (text) {
-         ctx.fillStyle = '#fff';
-         ctx.font = '16px Montserrat';
-         ctx.fillText(text, startX, startY);
+         ctx.fillStyle = '#fff'; ctx.font = '16px Montserrat'; ctx.fillText(text, startX, startY);
          ctx.fillStyle = 'rgba(44, 166, 224, 0.1)'; 
        }
        isDrawing = false;
@@ -754,8 +710,7 @@ function initCanvas(canvasId, groupName) {
   canvas.addEventListener('mousemove', e => {
     if (!isDrawing) return;
     const tool = canvasState[groupName].tool;
-    const x = e.offsetX;
-    const y = e.offsetY;
+    const x = e.offsetX; const y = e.offsetY;
     if (tool === 'pencil') {
       ctx.lineWidth = 3; ctx.globalCompositeOperation = 'source-over'; ctx.lineTo(x, y); ctx.stroke();
     } else if (tool === 'eraser') {
@@ -766,14 +721,11 @@ function initCanvas(canvasId, groupName) {
   canvas.addEventListener('mouseup', e => {
     if (!isDrawing) return;
     isDrawing = false;
-    const endX = e.offsetX;
-    const endY = e.offsetY;
+    const endX = e.offsetX; const endY = e.offsetY;
     const tool = canvasState[groupName].tool;
     ctx.lineWidth = 3; ctx.strokeStyle = '#2CA6E0'; ctx.globalCompositeOperation = 'source-over';
     
-    const w = endX - startX;
-    const h = endY - startY;
-
+    const w = endX - startX; const h = endY - startY;
     if (tool === 'box' || tool === 'rect') {
       const hFinal = (tool === 'box') ? w : h; 
       ctx.rect(startX, startY, w, hFinal); ctx.fill(); ctx.stroke();
@@ -783,14 +735,10 @@ function initCanvas(canvasId, groupName) {
     } else if (tool === 'triangle') {
       ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY); ctx.lineTo(startX - w, endY); ctx.closePath(); ctx.fill(); ctx.stroke();
     } else if (tool === 'diamond') {
-       // Simple diamond shape for Flowchart
        ctx.beginPath();
-       ctx.moveTo(startX + w/2, startY); // Top
-       ctx.lineTo(endX, startY + h/2);   // Right
-       ctx.lineTo(startX + w/2, endY);   // Bottom
-       ctx.lineTo(startX, startY + h/2); // Left
-       ctx.closePath();
-       ctx.fill(); ctx.stroke();
+       ctx.moveTo(startX + w/2, startY); ctx.lineTo(endX, startY + h/2);
+       ctx.lineTo(startX + w/2, endY); ctx.lineTo(startX, startY + h/2);
+       ctx.closePath(); ctx.fill(); ctx.stroke();
     }
   });
 }
@@ -812,19 +760,10 @@ function toggleBrandKit(element) {
 
 function updateBrandKitDisplay() {
   document.querySelectorAll('.brand-kit-ref').forEach(bar => {
-    const ogPriceEl = bar.querySelector('.bk-og-price');
-    const discountLabelEl = bar.querySelector('.bk-discount-label');
     const finalPriceEl = bar.querySelector('.bk-final-price');
     if (!finalPriceEl) return;
     const hasBundle = !!(state.package && state.package.brandKitBundlePrice);
     const displayPrice = hasBundle ? Number(state.package.brandKitBundlePrice) : BASE_BRAND_KIT_PRICE;
-    if (hasBundle && displayPrice !== BASE_BRAND_KIT_PRICE) {
-      if (ogPriceEl) { ogPriceEl.textContent = `$${BASE_BRAND_KIT_PRICE.toLocaleString()}`; ogPriceEl.style.display = 'inline'; }
-      if (discountLabelEl) discountLabelEl.style.display = 'block';
-    } else {
-      if (ogPriceEl) ogPriceEl.style.display = 'none';
-      if (discountLabelEl) discountLabelEl.style.display = 'none';
-    }
     finalPriceEl.textContent = `$${displayPrice.toLocaleString()}`;
     bar.classList.toggle('selected', !!state.brandKit);
   });
@@ -859,6 +798,7 @@ function initCollapsibles() {
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
   initCollapsibles();
+  // Safe checks for page-specific inits
   if (window.location.pathname.includes('step2')) {
     initPageBuilder();
     if(state.package) handlePackageSelected(true);
