@@ -10,6 +10,9 @@ const state = {
   customBranding: { active: false, name: "", price: 0 }
 };
 
+// New: Store files in memory (cannot be saved to localStorage due to size limits)
+const pageAttachments = {}; 
+
 const BASE_BRAND_KIT_PRICE = 500;
 
 const SUGGESTION_DB = {
@@ -82,7 +85,7 @@ function toggleBrandingPanels(value) {
   saveState();
 }
 
-// FILE UPLOAD & DOWNLOAD
+// STEP 2 FILE UPLOAD (BRANDING)
 let uploadedFiles = []; 
 function handleFileUpload(e) {
   const files = e.target.files;
@@ -310,6 +313,7 @@ function renderBasicPlan(container) {
   });
 }
 
+// --- NEW STANDARD PLAN (Step 3) ---
 function renderStandardPlan(container) {
   const intro = `<div style="text-align:center; margin-bottom:30px;"><p>Sketch your layout for Mobile and Desktop views.</p></div>`;
   container.insertAdjacentHTML('beforeend', intro);
@@ -318,6 +322,7 @@ function renderStandardPlan(container) {
     const mobileId = `cvs-m-${index}`;
     const desktopId = `cvs-d-${index}`;
     const groupName = `group-${index}`;
+    const fileListId = `file-list-${index}`;
     const orderOptions = state.pages.map((_, i) => `<option value="${i}" ${i === index ? 'selected' : ''}>Order: ${i + 1}</option>`).join('');
 
     const html = `
@@ -366,13 +371,16 @@ function renderStandardPlan(container) {
             <div class="plan-files-area">
               <label>Page Assets</label>
               <div class="file-upload-wrapper">
-                 <label for="file-${index}" class="custom-file-upload">
+                 <label for="file-input-${index}" class="custom-file-upload">
                    <span style="font-size:1.2rem;">📂</span><br>Click to Upload
                  </label>
-                 <input id="file-${index}" type="file" onchange="alert('File attached for ${page}')" />
+                 <input id="file-input-${index}" type="file" multiple onchange="handlePageFileUpload('${page}', this, '${fileListId}')" />
               </div>
+              
+              <div id="${fileListId}" class="mini-file-list"></div>
+              
               <button class="btn btn-secondary btn-download-mini" style="width:100%; margin-top:15px; padding:12px;" 
-                onclick="downloadMockups('${page}', '${mobileId}', '${desktopId}')">Download Sketch ⇩</button>
+                onclick="downloadPageAssets('${page}', '${mobileId}', '${desktopId}')">Download Sketch & Files ⇩</button>
             </div>
           </div>
 
@@ -381,13 +389,102 @@ function renderStandardPlan(container) {
     `;
     container.insertAdjacentHTML('beforeend', html);
     
-    // Defer canvas init to allow DOM render, and try to restore previous drawings
     setTimeout(() => {
       initCanvas(mobileId, groupName);
       initCanvas(desktopId, groupName);
       restoreCanvasData(page, mobileId, desktopId);
+      // Restore file list UI if exists
+      renderPageFileList(page, fileListId);
     }, 100);
   });
+}
+
+// --- FILE UPLOAD LOGIC FOR STEP 3 ---
+function handlePageFileUpload(pageName, input, listId) {
+  if (input.files && input.files.length > 0) {
+    if (!pageAttachments[pageName]) pageAttachments[pageName] = [];
+    
+    // Add new files to array
+    Array.from(input.files).forEach(f => pageAttachments[pageName].push(f));
+    
+    // Update UI
+    renderPageFileList(pageName, listId);
+  }
+}
+
+function renderPageFileList(pageName, listId) {
+  const container = document.getElementById(listId);
+  if (!container) return;
+  
+  container.innerHTML = '';
+  const files = pageAttachments[pageName] || [];
+  
+  if (files.length === 0) {
+    container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:5px;">No files attached</div>';
+    return;
+  }
+
+  files.forEach(file => {
+    const div = document.createElement('div');
+    div.className = 'page-file-item';
+    div.textContent = `📎 ${file.name}`;
+    container.appendChild(div);
+  });
+}
+
+// --- COMBINED DOWNLOAD LOGIC (Sketch + Files) ---
+function downloadPageAssets(pageName, mobileId, desktopId) {
+  // 1. Download Sketch (Mobile + Desktop composite)
+  const mCanvas = document.getElementById(mobileId);
+  const dCanvas = document.getElementById(desktopId);
+  
+  if (mCanvas && dCanvas) {
+    const gap = 20;
+    const w = mCanvas.width + dCanvas.width + gap;
+    const h = Math.max(mCanvas.height, dCanvas.height);
+    const comp = document.createElement('canvas');
+    comp.width = w; comp.height = h;
+    const ctx = comp.getContext('2d');
+    
+    // Background
+    ctx.fillStyle = '#0f1322'; 
+    ctx.fillRect(0,0,w,h);
+    
+    // Draw
+    ctx.drawImage(mCanvas, 0, 0); 
+    ctx.drawImage(dCanvas, mCanvas.width + gap, 0);
+    
+    // Labels
+    ctx.fillStyle = '#fff'; ctx.font = '20px Montserrat';
+    ctx.fillText("Mobile", 10, 30); ctx.fillText("Desktop", mCanvas.width + gap + 10, 30);
+    
+    // Trigger Download
+    const link = document.createElement('a');
+    link.download = `${pageName}-layout-sketch.png`;
+    link.href = comp.toDataURL();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // 2. Download Attached Files
+  const files = pageAttachments[pageName] || [];
+  if (files.length > 0) {
+    // Add small delay to prevent browser blocking multiple downloads
+    let delay = 500; 
+    files.forEach(file => {
+      setTimeout(() => {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, delay);
+      delay += 500;
+    });
+  }
 }
 
 function togglePlanCard(header) {
@@ -399,22 +496,13 @@ function togglePlanCard(header) {
 function changePageOrder(oldIndex, newIndexStr) {
   const newIndex = parseInt(newIndexStr);
   if (oldIndex === newIndex) return;
-
-  // 1. Save all current canvas states to memory before moving
   saveAllCanvasStates();
-
-  // 2. Move item in array
   const item = state.pages.splice(oldIndex, 1)[0];
   state.pages.splice(newIndex, 0, item);
-  
-  // 3. Save new order to storage
   saveState();
-
-  // 4. Re-render
   initStep3();
 }
 
-// CANVAS STATE SAVING (For Reordering)
 function saveAllCanvasStates() {
   state.pages.forEach((page, idx) => {
     const mCanvas = document.getElementById(`cvs-m-${idx}`);
@@ -431,7 +519,6 @@ function saveAllCanvasStates() {
 function restoreCanvasData(page, mId, dId) {
   const plan = state.pagePlans[page];
   if (!plan) return;
-  
   if (plan.mobileData) {
     const img = new Image();
     img.onload = function() { document.getElementById(mId).getContext('2d').drawImage(img, 0, 0); };
@@ -563,25 +650,6 @@ function resetCanvasGroup(id1, id2) {
       if(c) { c.getContext('2d').clearRect(0, 0, c.width, c.height); }
     });
   }
-}
-
-function downloadMockups(pageName, mobileId, desktopId) {
-  const mCanvas = document.getElementById(mobileId);
-  const dCanvas = document.getElementById(desktopId);
-  const gap = 20;
-  const w = mCanvas.width + dCanvas.width + gap;
-  const h = Math.max(mCanvas.height, dCanvas.height);
-  const comp = document.createElement('canvas');
-  comp.width = w; comp.height = h;
-  const ctx = comp.getContext('2d');
-  ctx.fillStyle = '#0f1322'; ctx.fillRect(0,0,w,h);
-  ctx.drawImage(mCanvas, 0, 0); ctx.drawImage(dCanvas, mCanvas.width + gap, 0);
-  ctx.fillStyle = '#fff'; ctx.font = '20px Montserrat';
-  ctx.fillText("Mobile", 10, 30); ctx.fillText("Desktop", mCanvas.width + gap + 10, 30);
-  const link = document.createElement('a');
-  link.download = `${pageName}-layout-sketch.png`;
-  link.href = comp.toDataURL();
-  link.click();
 }
 
 function toggleBrandKit(element) {
