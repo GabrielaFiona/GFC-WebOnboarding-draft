@@ -1,11 +1,11 @@
 // --- STATE MANAGEMENT ---
 const state = {
-  package: null,     // { id, name, price, limit, extraPageCost, ... }
+  package: null,
   brandKit: false,
-  industry: "",      // Stores user industry input
-  pages: [],         // Array of page names
+  industry: "",
+  pages: [],
   addons: [],
-  pagePlans: {}      // Stores Step 3 data: { "Home": { notes: "...", drawData: [...] } }
+  pagePlans: {} 
 };
 
 const BASE_BRAND_KIT_PRICE = 500;
@@ -43,15 +43,12 @@ function selectPackage(id, name, price, limit, brandKitBundlePrice, extraPageCos
 
   state.package = { id, name, price, limit, brandKitBundlePrice, extraPageCost };
   
-  // Initialize default pages if empty
-  if (state.pages.length === 0) {
-    state.pages = ['Home', 'Contact'];
-  }
+  if (state.pages.length === 0) state.pages = ['Home', 'Contact'];
   
   handlePackageSelected();
   calculateTotal();
   updateBrandKitDisplay();
-  updatePageBuilderUI(); // Refresh page builder limits
+  updatePageBuilderUI(); 
   saveState();
 }
 
@@ -64,7 +61,6 @@ function handlePackageSelected(isRestore) {
   if (unlocked) unlocked.classList.remove('hidden');
   if (pageBuilder) {
     pageBuilder.classList.remove('hidden');
-    // Open page builder automatically if first time
     if (!isRestore) {
       const pbCol = document.querySelector('[data-key="step2-pages"]');
       if (pbCol) pbCol.classList.remove('collapsed');
@@ -77,14 +73,10 @@ function handlePackageSelected(isRestore) {
   if (window.initCollapsibles) window.initCollapsibles(); 
 }
 
-// Page Builder Logic
 function initPageBuilder() {
   const input = document.getElementById('industryInput');
   if (!input) return;
-
-  // Render existing pages
   renderActivePages();
-
   input.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       generateSuggestions(input.value);
@@ -92,7 +84,6 @@ function initPageBuilder() {
       saveState();
     }
   });
-
   if (state.industry) {
     input.value = state.industry;
     generateSuggestions(state.industry);
@@ -102,18 +93,14 @@ function initPageBuilder() {
 function generateSuggestions(query) {
   const container = document.getElementById('suggestionChips');
   if (!container) return;
-  
   container.innerHTML = '';
   let found = false;
-  
-  // Find matching key
   Object.keys(SUGGESTION_DB).forEach(key => {
     if (query.toLowerCase().includes(key)) {
       renderChips(SUGGESTION_DB[key], container);
       found = true;
     }
   });
-
   if (!found) renderChips(SUGGESTION_DB['default'], container);
 }
 
@@ -131,13 +118,12 @@ function renderChips(pages, container) {
 function addPage(nameRaw) {
   const input = document.getElementById('customPageInput');
   const name = nameRaw || input.value.trim();
-  
   if (!name) return;
   if (!state.pages.includes(name)) {
     state.pages.push(name);
     if (input) input.value = '';
     renderActivePages();
-    generateSuggestions(state.industry || ''); // Refresh chips status
+    generateSuggestions(state.industry || '');
     calculateTotal();
     saveState();
   }
@@ -157,7 +143,6 @@ function renderActivePages() {
   const warning = document.getElementById('pageLimitWarning');
   
   if (!list || !state.package) return;
-  
   list.innerHTML = '';
   state.pages.forEach(page => {
     const tag = document.createElement('div');
@@ -170,7 +155,6 @@ function renderActivePages() {
   const current = state.pages.length;
   if (countEl) countEl.textContent = `${current}/${limit}`;
 
-  // Over limit logic
   if (current > limit) {
     const extra = current - limit;
     const cost = extra * state.package.extraPageCost;
@@ -181,11 +165,8 @@ function renderActivePages() {
   }
 }
 
-function updatePageBuilderUI() {
-  renderActivePages();
-}
+function updatePageBuilderUI() { renderActivePages(); }
 
-// --- CALCULATION ---
 function calculateTotal() {
   const fwItems = document.getElementById('fw-items');
   if (!fwItems) return;
@@ -196,8 +177,6 @@ function calculateTotal() {
   if (state.package) {
     html += `<div class="fw-item"><span>${state.package.name}</span><span>$${state.package.price.toLocaleString()}</span></div>`;
     total += state.package.price;
-
-    // Extra Pages
     if (state.pages.length > state.package.limit) {
       const extra = state.pages.length - state.package.limit;
       const extraCost = extra * state.package.extraPageCost;
@@ -224,13 +203,11 @@ function calculateTotal() {
 
   if (!html) html = '<p class="empty-state">Select a package to start...</p>';
   fwItems.innerHTML = html;
-
+  
   const headerTotalEl = document.getElementById('fw-header-total');
   if (headerTotalEl) headerTotalEl.textContent = `$${total.toLocaleString()}`;
-  
   const fullTotalEl = document.getElementById('fw-full-total');
   if (fullTotalEl) fullTotalEl.textContent = `$${total.toLocaleString()}`;
-
   const depositEl = document.getElementById('fw-deposit');
   if (depositEl) depositEl.textContent = `$${(total / 2).toLocaleString()}`;
 }
@@ -238,22 +215,13 @@ function calculateTotal() {
 // --- STEP 3: PLAN & CANVAS LOGIC ---
 function initStep3() {
   if (!document.body.classList.contains('step3')) return;
-  
   const container = document.getElementById('planContainer');
   const pkgId = state.package ? state.package.id : 'basic';
-  
-  container.innerHTML = ''; // Clear
+  container.innerHTML = ''; 
 
-  if (pkgId === 'basic') {
-    // BASIC: Notes only
-    renderBasicPlan(container);
-  } else if (pkgId === 'standard') {
-    // STANDARD: Visual Mockups
-    renderStandardPlan(container);
-  } else if (pkgId === 'advanced') {
-    // ADVANCED: Flowchart / Ecosystem
-    renderAdvancedPlan(container);
-  }
+  if (pkgId === 'basic') renderBasicPlan(container);
+  else if (pkgId === 'standard') renderStandardPlan(container);
+  else if (pkgId === 'advanced') renderAdvancedPlan(container);
 }
 
 function renderBasicPlan(container) {
@@ -261,9 +229,7 @@ function renderBasicPlan(container) {
     const noteVal = state.pagePlans[page]?.notes || '';
     const html = `
       <div class="plan-card">
-        <div class="plan-card-header">
-          <span>${index + 1}. ${page}</span>
-        </div>
+        <div class="plan-card-header"><span>${index + 1}. ${page}</span></div>
         <div class="plan-card-body">
           <label>Page Goals & Content Notes</label>
           <textarea rows="5" oninput="savePageNote('${page}', this.value)" placeholder="What should be on this page?">${noteVal}</textarea>
@@ -275,74 +241,89 @@ function renderBasicPlan(container) {
 }
 
 function renderStandardPlan(container) {
-  const intro = `<div style="text-align:center; margin-bottom:30px;"><p>Use the drag-tool to sketch layout ideas for your pages.</p></div>`;
+  const intro = `<div style="text-align:center; margin-bottom:30px;"><p>Sketch your layout for Mobile and Desktop views.</p></div>`;
   container.insertAdjacentHTML('beforeend', intro);
 
   state.pages.forEach((page, index) => {
-    const id = `canvas-${index}`;
+    const mobileId = `cvs-m-${index}`;
+    const desktopId = `cvs-d-${index}`;
+    const groupName = `group-${index}`;
+
     const html = `
       <div class="plan-card">
-        <div class="plan-card-header">
-          <span>${page} Layout</span>
-        </div>
+        <div class="plan-card-header"><span>${page} Layout</span></div>
         <div class="plan-card-body">
-          <div class="mockup-toolbar">
-            <button class="tool-btn" onclick="setTool('${id}', 'rect')">⬜</button>
-            <button class="tool-btn" onclick="setTool('${id}', 'text')">T</button>
-            <button class="tool-btn" onclick="clearCanvas('${id}')">🗑️</button>
+          
+          <div class="mockup-toolbar" id="toolbar-${index}">
+            <button class="tool-btn active" onclick="setTool('${groupName}', 'pencil', this)">✏️ Pencil</button>
+            <button class="tool-btn" onclick="setTool('${groupName}', 'box', this)">⬜ Box</button>
+            <button class="tool-btn" onclick="setTool('${groupName}', 'rect', this)">▬ Rect</button>
+            <button class="tool-btn" onclick="setTool('${groupName}', 'triangle', this)">🔺 Tri</button>
+            <button class="tool-btn" onclick="setTool('${groupName}', 'circle', this)">⭕ Circ</button>
+            <button class="tool-btn" onclick="setTool('${groupName}', 'text', this)">T Text</button>
+            <button class="tool-btn" onclick="setTool('${groupName}', 'eraser', this)">🧹 Eraser</button>
+            <button class="tool-btn tool-btn-danger" style="margin-left:auto;" onclick="resetCanvasGroup('${mobileId}', '${desktopId}')">↺ Reset</button>
           </div>
-          <canvas id="${id}" class="canvas-container"></canvas>
-          <div style="margin-top:20px;">
-            <label>Specific Requirements</label>
-            <textarea rows="2" oninput="savePageNote('${page}', this.value)" placeholder="Notes...">${state.pagePlans[page]?.notes || ''}</textarea>
+
+          <div class="canvas-pair-container">
+            <div class="canvas-wrap">
+              <span class="canvas-label">Mobile</span>
+              <canvas id="${mobileId}" class="canvas-standard" width="240" height="400"></canvas>
+            </div>
+            <div class="canvas-wrap">
+              <span class="canvas-label">Desktop</span>
+              <canvas id="${desktopId}" class="canvas-standard" width="550" height="400"></canvas>
+            </div>
           </div>
+
+          <div class="plan-action-row">
+            <div class="file-upload-box">
+              <label>Attach File (optional)</label>
+              <input type="file" onchange="console.log('File attached for ${page}')" />
+            </div>
+            <div style="flex-grow:1; margin: 0 20px;">
+              <textarea rows="2" style="margin:0;" oninput="savePageNote('${page}', this.value)" placeholder="Additional notes...">${state.pagePlans[page]?.notes || ''}</textarea>
+            </div>
+            <button class="btn btn-secondary btn-download-mini" style="font-size:0.8rem; padding:10px 15px;" 
+              onclick="downloadMockups('${page}', '${mobileId}', '${desktopId}')">Download Layouts ⇩</button>
+          </div>
+
         </div>
       </div>
     `;
     container.insertAdjacentHTML('beforeend', html);
     
-    // Init Canvas after render
-    setTimeout(() => initCanvas(id, page), 100);
+    setTimeout(() => {
+      initCanvas(mobileId, groupName);
+      initCanvas(desktopId, groupName);
+    }, 100);
   });
 }
 
 function renderAdvancedPlan(container) {
-  const intro = `<div style="text-align:center; margin-bottom:30px;">
-    <h2>Ecosystem Map</h2>
-    <p>Map out how your website connects to your business tools.</p>
-  </div>`;
-  container.insertAdjacentHTML('beforeend', intro);
-
   const html = `
     <div class="integration-row">
       <div class="plan-card">
         <div class="plan-card-header">System Flowchart</div>
         <div class="plan-card-body">
           <div class="mockup-toolbar">
-            <button class="tool-btn" onclick="setTool('advancedCanvas', 'rect')">⬜</button>
-            <button class="tool-btn" onclick="setTool('advancedCanvas', 'line')">🔗</button>
-            <button class="tool-btn" onclick="clearCanvas('advancedCanvas')">🗑️</button>
+            <button class="tool-btn" onclick="setTool('advancedGroup', 'box')">⬜ Box</button>
+            <button class="tool-btn" onclick="setTool('advancedGroup', 'line')">🔗 Line</button>
+            <button class="tool-btn" onclick="resetCanvasGroup('advancedCanvas')">🗑️ Clear</button>
           </div>
-          <canvas id="advancedCanvas" class="canvas-container" style="height:600px;"></canvas>
+          <canvas id="advancedCanvas" class="canvas-container" style="background:#0f1322; width:100%; height:500px;" width="800" height="500"></canvas>
         </div>
       </div>
-      
       <div class="integration-list">
         <h4>Integrations</h4>
-        <p style="font-size:0.8rem;">Drag ideas onto the map or list them here.</p>
         <div class="integration-item">Stripe / Payments</div>
         <div class="integration-item">Mailchimp</div>
-        <div class="integration-item">Calendly</div>
-        <div class="integration-item">Google Analytics</div>
-        <div class="integration-item">Zapier</div>
-        <hr style="border:0; border-top:1px solid var(--border-light); margin:15px 0;">
-        <label>Technical Notes</label>
-        <textarea rows="10" id="advancedNotes" oninput="saveAdvancedNotes(this.value)" placeholder="Describe complex logic here...">${state.advancedNotes || ''}</textarea>
+        <textarea rows="10" oninput="saveAdvancedNotes(this.value)">${state.advancedNotes || ''}</textarea>
       </div>
     </div>
   `;
   container.insertAdjacentHTML('beforeend', html);
-  setTimeout(() => initCanvas('advancedCanvas', 'SYSTEM_FLOW'), 100);
+  setTimeout(() => initCanvas('advancedCanvas', 'advancedGroup'), 100);
 }
 
 function savePageNote(pageName, text) {
@@ -356,44 +337,77 @@ function saveAdvancedNotes(text) {
   saveState();
 }
 
-// --- SIMPLE CANVAS LOGIC ---
-// Very basic drawing tool for "Paint-like" feel
-let activeTool = 'rect';
-let isDrawing = false;
-let startX, startY;
+// --- CANVAS TOOLS & LOGIC ---
+const canvasState = {}; // Store tool state per group
 
-function setTool(canvasId, tool) {
-  activeTool = tool;
-  // Visual feedback for buttons could be added here
+function setTool(groupName, tool, btn) {
+  if (!canvasState[groupName]) canvasState[groupName] = { tool: 'pencil' };
+  canvasState[groupName].tool = tool;
+  
+  // Update UI
+  if (btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
 }
 
-function initCanvas(canvasId, storageKey) {
+function initCanvas(canvasId, groupName) {
   const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
-  // Resize logic
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
+  if (!canvasState[groupName]) canvasState[groupName] = { tool: 'pencil' };
 
+  let isDrawing = false;
+  let startX, startY;
+
+  // Defaults
   ctx.strokeStyle = '#2CA6E0';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3; 
+  ctx.lineCap = 'round';
   ctx.fillStyle = 'rgba(44, 166, 224, 0.1)';
-  
-  // Restore if exists (simplified for MVP - usually requires complex object storage)
-  // For this demo, we won't fully persist canvas bitmap data as it gets huge in localStorage
-  
+
   canvas.addEventListener('mousedown', e => {
     isDrawing = true;
     startX = e.offsetX;
     startY = e.offsetY;
+    const tool = canvasState[groupName].tool;
+    
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+
+    if (tool === 'text') {
+       const text = prompt("Enter text:", "Header");
+       if (text) {
+         ctx.fillStyle = '#fff';
+         ctx.font = '16px Montserrat';
+         ctx.fillText(text, startX, startY);
+         ctx.fillStyle = 'rgba(44, 166, 224, 0.1)'; // Reset
+       }
+       isDrawing = false;
+    }
   });
 
   canvas.addEventListener('mousemove', e => {
     if (!isDrawing) return;
-    if (activeTool === 'rect') {
-      // Simple preview (clearing messes up previous drawings in this simple implementation)
-      // For a real paint tool, we'd need a secondary canvas layer or object list
+    const tool = canvasState[groupName].tool;
+    const x = e.offsetX;
+    const y = e.offsetY;
+
+    if (tool === 'pencil') {
+      ctx.lineWidth = 3;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else if (tool === 'eraser') {
+      ctx.lineWidth = 20;
+      ctx.globalCompositeOperation = 'destination-out'; // Erase alpha
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over'; // Reset
     }
+    // Shapes are drawn on mouseup to avoid complex preview logic in this simple script
   });
 
   canvas.addEventListener('mouseup', e => {
@@ -401,32 +415,86 @@ function initCanvas(canvasId, storageKey) {
     isDrawing = false;
     const endX = e.offsetX;
     const endY = e.offsetY;
-    
-    ctx.beginPath();
-    if (activeTool === 'rect') {
-      ctx.rect(startX, startY, endX - startX, endY - startY);
+    const tool = canvasState[groupName].tool;
+
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#2CA6E0';
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (tool === 'box' || tool === 'rect') {
+      const w = endX - startX;
+      const h = (tool === 'box') ? w : (endY - startY); // Box implies square
+      ctx.rect(startX, startY, w, h);
       ctx.fill();
       ctx.stroke();
-    } else if (activeTool === 'line') {
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
+    } else if (tool === 'circle') {
+      const radius = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+      ctx.beginPath();
+      ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+      ctx.fill();
       ctx.stroke();
-    } else if (activeTool === 'text') {
-      ctx.fillStyle = '#fff';
-      ctx.font = '16px Montserrat';
-      ctx.fillText('Content Block', startX, startY);
-      ctx.fillStyle = 'rgba(44, 166, 224, 0.1)'; // Reset
+    } else if (tool === 'triangle') {
+      ctx.beginPath();
+      ctx.moveTo(startX, startY); // Top/Start
+      ctx.lineTo(endX, endY); // Bottom Right
+      ctx.lineTo(startX - (endX - startX), endY); // Bottom Left (Simple Isosceles calc)
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
     }
   });
 }
 
-function clearCanvas(id) {
-  const canvas = document.getElementById(id);
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function resetCanvasGroup(id1, id2) {
+  if(confirm("Clear sketches?")) {
+    [id1, id2].forEach(id => {
+      const c = document.getElementById(id);
+      if(c) {
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, c.width, c.height);
+      }
+    });
+  }
 }
 
-// --- SHARED UTILS ---
+// --- DOWNLOAD MERGER ---
+function downloadMockups(pageName, mobileId, desktopId) {
+  const mCanvas = document.getElementById(mobileId);
+  const dCanvas = document.getElementById(desktopId);
+  
+  // Create a temporary composite canvas
+  const gap = 20;
+  const w = mCanvas.width + dCanvas.width + gap;
+  const h = Math.max(mCanvas.height, dCanvas.height);
+  
+  const comp = document.createElement('canvas');
+  comp.width = w;
+  comp.height = h;
+  const ctx = comp.getContext('2d');
+  
+  // Fill Background (so it's not transparent png)
+  ctx.fillStyle = '#0f1322';
+  ctx.fillRect(0,0,w,h);
+  
+  // Draw Mobile
+  ctx.drawImage(mCanvas, 0, 0);
+  // Draw Desktop
+  ctx.drawImage(dCanvas, mCanvas.width + gap, 0);
+  
+  // Labels
+  ctx.fillStyle = '#fff';
+  ctx.font = '20px Montserrat';
+  ctx.fillText("Mobile", 10, 30);
+  ctx.fillText("Desktop", mCanvas.width + gap + 10, 30);
+  
+  // Download
+  const link = document.createElement('a');
+  link.download = `${pageName}-layout-sketch.png`;
+  link.href = comp.toDataURL();
+  link.click();
+}
+
+// --- SHARED UTILS (Collapsible, Widget, etc kept same) ---
 function toggleBrandKit(element) {
   state.brandKit = !state.brandKit;
   if (element) element.classList.toggle('selected', state.brandKit);
@@ -442,10 +510,8 @@ function updateBrandKitDisplay() {
   const discountLabelEl = bar.querySelector('.discount-label');
   const finalPriceEl = bar.querySelector('.final-price');
   if (!finalPriceEl) return;
-
   const hasBundle = !!(state.package && state.package.brandKitBundlePrice);
   const displayPrice = hasBundle ? Number(state.package.brandKitBundlePrice) : BASE_BRAND_KIT_PRICE;
-
   if (hasBundle && displayPrice !== BASE_BRAND_KIT_PRICE) {
     if (ogPriceEl) { ogPriceEl.textContent = `$${BASE_BRAND_KIT_PRICE.toLocaleString()}`; ogPriceEl.style.display = 'inline'; }
     if (discountLabelEl) discountLabelEl.style.display = 'block';
@@ -483,7 +549,6 @@ function initCollapsibles() {
   });
 }
 
-// Global Init
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
   initCollapsibles();
