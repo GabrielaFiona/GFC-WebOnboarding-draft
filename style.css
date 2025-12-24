@@ -158,6 +158,15 @@ select option { background: #0f1322; color: var(--text-main); }
 .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); }
 .btn-secondary:hover { border-color: var(--accent-blue); color: var(--text-main); background: var(--surface-hover); }
 
+/* Main Download All Button */
+.btn-download-all {
+  display: block; margin: 50px auto 20px auto; padding: 25px 60px;
+  font-size: 1rem; background: var(--bg-dark); border: 2px solid var(--accent-blue);
+  color: var(--accent-blue); border-radius: 50px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;
+  transition: all 0.3s; cursor: pointer; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+.btn-download-all:hover { background: var(--accent-blue); color: #fff; box-shadow: 0 0 35px rgba(44, 166, 224, 0.5); transform: translateY(-2px); }
+
 /* --- Floating Widget --- */
 #floating-widget {
   position: fixed; bottom: 30px; right: 30px; width: 320px;
@@ -387,6 +396,32 @@ select option { background: #0f1322; color: var(--text-main); }
 .custom-file-upload:hover { border-color: var(--accent-blue); color: var(--accent-blue); background: var(--surface-hover); }
 .file-upload-wrapper input[type="file"] { display: none; }
 
+.mini-file-list {
+  margin-top: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 5px;
+  min-height: 10px;
+}
+.page-file-item {
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.page-file-item:last-child { border-bottom: none; }
+
+.delete-file-btn {
+  color: #ff6b6b; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-left: 10px; line-height: 1;
+}
+.delete-file-btn:hover { color: #ff4c4c; transform: scale(1.1); }
+
 .hidden { display: none !important; }
 
 @media (max-width: 900px) {
@@ -396,26 +431,4 @@ select option { background: #0f1322; color: var(--text-main); }
   .plan-footer { grid-template-columns: 1fr; }
   h1 { font-size: 2.5rem; }
   .container { margin: 30px auto; }
-}
-/* Add to style.css */
-
-.mini-file-list {
-  margin-top: 10px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 6px;
-  padding: 5px;
-  min-height: 10px;
-}
-
-.page-file-item {
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.page-file-item:last-child {
-  border-bottom: none;
 }
