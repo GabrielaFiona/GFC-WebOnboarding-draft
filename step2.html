@@ -1,451 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Client Onboarding - Build Structure</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 2: Structure & Packages</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body class="step2">
 
   <div id="floating-widget" class="collapsed">
-    <div class="fw-header" onclick="toggleWidget()">
-      <span>Estimated Investment</span>
-      <span id="fw-header-total">$0</span>
-    </div>
+    <div class="fw-header"><span>Estimated Total</span> ▾</div>
     <div class="fw-content">
-      <div id="fw-items">
-        <p class="empty-state">Select a package to start...</p>
-      </div>
-      <div class="fw-total">
-        <span>Total</span>
-        <span id="fw-full-total">$0</span>
-      </div>
-      <div class="fw-deposit">
-        50% Deposit: <span id="fw-deposit">$0</span>
-      </div>
+      <div id="fw-items"></div>
+      <div class="fw-total"><span>Total</span><span id="fw-full-total">$0</span></div>
+      <div style="font-size:0.8rem; text-align:right; margin-top:5px; color:var(--accent-blue);">50% Deposit: <span id="fw-deposit">$0</span></div>
     </div>
   </div>
 
   <div class="progress-header">
     <div class="progress-bar">
       <div class="progress-line-bg"></div>
-      <div class="progress-line-fill" id="progress-fill" style="width:33.33%;"></div>
-      <div class="step-indicator completed" id="step-ind-1">1 <div class="step-label">Goals</div></div>
-      <div class="step-indicator active" id="step-ind-2">2 <div class="step-label">Structure</div></div>
-      <div class="step-indicator" id="step-ind-3">3 <div class="step-label">Plan</div></div>
-      <div class="step-indicator" id="step-ind-4">4 <div class="step-label">Finalize</div></div>
+      <div class="progress-line-fill" style="width:50%;"></div>
+      <div class="step-indicator completed">1</div>
+      <div class="step-indicator active">2<div class="step-label">Structure</div></div>
+      <div class="step-indicator">3<div class="step-label">Planning</div></div>
     </div>
   </div>
 
   <div class="container">
-    <div id="step-2" class="step-section active">
+    <h1>Choose your foundation.</h1>
+    <p>Select a package, then customize your sitemap. Extra pages are added automatically.</p>
 
-      <div style="text-align: center; margin-bottom: 50px;">
-        <h1>Build Structure</h1>
-        <p>Choose a website package to set the foundation.</p>
-      </div>
-
-      <section class="collapsible" data-collapsible data-key="step2-packages">
-        <button class="collapsible-header" type="button" data-collapsible-header>
-          <div>
-            <div class="collapsible-title">Website Packages</div>
-            <div class="collapsible-subtitle">Select your baseline scope.</div>
-          </div>
-          <div class="collapsible-chevron">▾</div>
-        </button>
-
-        <div class="collapsible-body">
-          <div class="collapsible-inner">
-
-            <div class="packages-included-inline">
-              <div class="packages-included-title">Included in all packages</div>
-              <div>
-                <span class="chip">Mobile-Optimized</span>
-                <span class="chip">Analytics</span>
-                <span class="chip">Basic SEO</span>
-                <span class="chip">Copywriting</span>
-                <span class="chip">Hosting Setup</span>
+    <div class="collapsible">
+      <button class="collapsible-header">
+        <div class="collapsible-title">1. Select Package</div>
+        <span class="collapsible-chevron">▾</span>
+      </button>
+      <div class="collapsible-body">
+        <div class="collapsible-inner">
+          <div class="package-grid">
+            <div class="package-card" data-package-id="basic">
+              <div class="package-summary">
+                <div class="package-media">BASIC</div>
+                <div class="package-name">Basic Website</div>
+                <div class="package-price">$1,500</div>
+                <div style="font-size:0.85rem; opacity:0.7;">2 Pages Included<br>Online Business Card</div>
               </div>
             </div>
-
-            <div class="package-grid">
-              <div class="package-card" data-package-id="basic"
-                   onclick="selectPackage('basic','Basic Website',1500,2,425,150,this); handlePackageSelected();">
-                <div class="package-summary">
-                  <div class="package-media">
-                    <div class="package-media-placeholder">Basic</div>
-                  </div>
-                  <div>
-                    <div class="package-name">Basic</div>
-                    <div class="package-price">$1,500</div>
-                    <div style="font-size:0.85rem; opacity:0.7; margin-top:5px;">2 pages · 1 form</div>
-                  </div>
-                  <button class="package-expand" type="button" onclick="event.stopPropagation(); togglePackageDetails(this);">
-                    View Details
-                  </button>
-                </div>
-                <div class="package-details-wrap">
-                  <div class="package-details">
-                    <p style="font-size:0.9rem;">Perfect for online business cards or coming-soon pages.</p>
-                    <ul class="package-list">
-                      <li>2 Custom Pages</li>
-                      <li>1 Contact Form</li>
-                      <li>Standard Layout</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div class="package-card" data-package-id="standard"
-                   onclick="selectPackage('standard','Standard Website',2500,5,400,175,this); handlePackageSelected();">
-                <div class="package-summary">
-                  <div class="package-media">
-                    <div class="package-media-placeholder">Standard</div>
-                  </div>
-                  <div>
-                    <div class="package-name">Standard</div>
-                    <div class="package-price">$2,500</div>
-                    <div style="font-size:0.85rem; opacity:0.7; margin-top:5px;">5 pages · 3 embeds</div>
-                  </div>
-                  <button class="package-expand" type="button" onclick="event.stopPropagation(); togglePackageDetails(this);">
-                    View Details
-                  </button>
-                </div>
-                <div class="package-details-wrap">
-                  <div class="package-details">
-                    <p style="font-size:0.9rem;">Ideal for local businesses needing credibility (restaurants, contractors).</p>
-                    <ul class="package-list">
-                      <li>5 Custom Pages</li>
-                      <li>Contact Form</li>
-                      <li>Google Maps & Reviews</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div class="package-card" data-package-id="advanced"
-                   onclick="selectPackage('advanced','Advanced Website',4500,10,375,200,this); handlePackageSelected();">
-                <div class="package-summary">
-                  <div class="package-media">
-                    <div class="package-media-placeholder">Advanced</div>
-                  </div>
-                  <div>
-                    <div class="package-name">Advanced</div>
-                    <div class="package-price">$4,500</div>
-                    <div style="font-size:0.85rem; opacity:0.7; margin-top:5px;">10 pages · integrations</div>
-                  </div>
-                  <button class="package-expand" type="button" onclick="event.stopPropagation(); togglePackageDetails(this);">
-                    View Details
-                  </button>
-                </div>
-                <div class="package-details-wrap">
-                  <div class="package-details">
-                    <p style="font-size:0.9rem;">For complex needs like bookings, rentals, or e-commerce.</p>
-                    <ul class="package-list">
-                      <li>10 Custom Pages</li>
-                      <li>Booking/Scheduling Integrations</li>
-                      <li>Advanced Interactive Features</li>
-                    </ul>
-                  </div>
-                </div>
+            <div class="package-card" data-package-id="standard">
+              <div class="package-summary">
+                <div class="package-media">STD</div>
+                <div class="package-name">Standard Biz</div>
+                <div class="package-price">$2,500</div>
+                <div style="font-size:0.85rem; opacity:0.7;">5 Pages Included<br>Growth & Credibility</div>
               </div>
             </div>
-
-            <details style="margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 20px;">
-              <summary style="cursor: pointer; color: var(--text-muted); font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">
-                View After-Care Options
-              </summary>
-              <div class="aftercare-grid">
-                <div class="aftercare-card">
-                  <div class="aftercare-title">Hourly Edits</div>
-                  <div class="aftercare-price">$95<span style="font-size:0.8rem; font-weight:400;">/hr</span></div>
-                  <p style="font-size:0.85rem; margin:0;">Quick fixes & updates.</p>
-                </div>
-                <div class="aftercare-card">
-                  <div class="aftercare-title">Standard Request</div>
-                  <div class="aftercare-price">$175</div>
-                  <p style="font-size:0.85rem; margin:0;">Section swaps or content updates.</p>
-                </div>
-                <div class="aftercare-card">
-                  <div class="aftercare-title">Care Retainer</div>
-                  <div class="aftercare-price">$399<span style="font-size:0.8rem; font-weight:400;">/mo</span></div>
-                  <p style="font-size:0.85rem; margin:0;">Ongoing support & health checks.</p>
-                </div>
+            <div class="package-card" data-package-id="advanced">
+              <div class="package-summary">
+                <div class="package-media">ADV</div>
+                <div class="package-name">Advanced</div>
+                <div class="package-price">$4,500</div>
+                <div style="font-size:0.85rem; opacity:0.7;">10 Pages Included<br>Integrations & Systems</div>
               </div>
-            </details>
-
-          </div>
-        </div>
-      </section>
-
-      <section id="brandingSection" class="collapsible collapsed" data-collapsible data-key="step2-branding">
-        <button class="collapsible-header" type="button" data-collapsible-header>
-          <div>
-            <div class="collapsible-title">Branding</div>
-            <div class="collapsible-subtitle">Materials & Design Assets</div>
-          </div>
-          <div class="collapsible-chevron">▾</div>
-        </button>
-
-        <div class="collapsible-body">
-          <div class="collapsible-inner">
-            
-            <div class="notice" id="brandingLockedNotice" style="text-align:center; opacity:0.7;">
-              Please select a website package above to unlock branding.
-            </div>
-
-            <div id="brandingUnlocked" class="hidden">
-              <div class="branding-toggle-row">
-                <span style="font-weight:600; color:var(--text-main);">Do you have branding provided?</span>
-                <div class="segmented-control">
-                  <input class="seg-input" type="radio" name="brandingProvided" id="brandingProvidedYes" value="yes">
-                  <label class="seg-label" for="brandingProvidedYes">Yes</label>
-                  <input class="seg-input" type="radio" name="brandingProvided" id="brandingProvidedNo" value="no">
-                  <label class="seg-label" for="brandingProvidedNo">No</label>
-                </div>
-              </div>
-
-              <div id="brandingProvidedPanel" class="branding-panel hidden" style="margin-top:20px;">
-                <div class="form-grid">
-                  <div class="full-width">
-                    <label>Upload Materials</label>
-                    <p style="font-size:0.8rem; margin-bottom:8px;">Uploads are processed locally. Download them below to save them to your computer.</p>
-                    <input type="file" id="brandingUploads" multiple />
-                    
-                    <div id="file-staging-box" class="file-staging-area hidden">
-                      <div style="font-size:0.75rem; color:var(--accent-blue); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Ready to Download</div>
-                      <div id="file-list-content"></div>
-                    </div>
-
-                  </div>
-                  <div class="full-width">
-                    <label>Notes</label>
-                    <textarea id="brandingProvidedNotes" class="save-me" rows="3" placeholder="List what you have (logos, fonts, colors, etc)..."></textarea>
-                  </div>
-                </div>
-              </div>
-
-              <div id="brandingNotProvidedPanel" class="branding-panel hidden" style="margin-top:20px;">
-                <h4 style="margin-bottom:15px; color:var(--accent-blue);">Add Branding Services</h4>
-
-                <div class="package-card" id="brand-kit-bar" onclick="toggleBrandKit(this)" style="padding:20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                  <div>
-                    <div style="font-family:var(--font-heading); font-size:1.4rem;">Full Brand Kit</div>
-                    <div style="font-size:0.9rem; opacity:0.8;">Logo Suite, Typography, Colors & Persona</div>
-                  </div>
-                  <div style="text-align:right;">
-                    <span class="og-price" style="text-decoration:line-through; font-size:0.8rem; opacity:0.6;">$500</span>
-                    <div class="final-price" style="font-size:1.4rem; color:var(--accent-blue); font-weight:700;">$500</div>
-                    <span class="discount-label" style="font-size:0.6rem; letter-spacing:1px; display:none;">BUNDLED</span>
-                  </div>
-                </div>
-
-                <div style="display:flex; flex-wrap:wrap; gap:10px;">
-                  <div class="addon-pill" data-addon-id="single_logo" onclick="toggleAddon('single_logo','Single Logo',300,this)">
-                    <span>Single Logo</span>
-                    <span style="opacity:0.6; font-size:0.8rem;">+$300</span>
-                  </div>
-                  <div class="addon-pill" id="customBrandingPill" onclick="toggleCustomBranding(this)">
-                    <span>Custom Service</span>
-                    <span style="opacity:0.6; font-size:0.8rem;">+Custom</span>
-                  </div>
-                </div>
-
-                <div id="customBrandingPanel" class="custom-panel hidden" style="margin-top:20px; padding:20px; border:1px dashed var(--border-light); border-radius:10px;">
-                  <div class="form-grid">
-                    <div>
-                      <label>Service Name</label>
-                      <input type="text" id="customBrandingName" class="save-me" placeholder="e.g. Strategy Session" />
-                    </div>
-                    <div>
-                      <label>Price ($)</label>
-                      <input type="number" id="customBrandingPrice" class="save-me" placeholder="0" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
             </div>
           </div>
         </div>
-      </section>
-
-      <div class="step-nav-buttons">
-        <button class="btn btn-secondary" onclick="nextStep(1)">&larr; Back</button>
-        <button class="btn btn-primary" onclick="nextStep(3)">Next: Action Plan &rarr;</button>
       </div>
+    </div>
 
+    <div class="collapsible">
+      <button class="collapsible-header">
+        <div class="collapsible-title">2. Build Sitemap</div>
+        <div id="pageCountDisplay" style="font-size:0.9rem; color:var(--text-muted); margin-right:auto; margin-left:20px;"></div>
+        <span class="collapsible-chevron">▾</span>
+      </button>
+      <div class="collapsible-body">
+        <div class="collapsible-inner">
+          
+          <label>Add Pages (Type or Select)</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="pageInput" placeholder="Type a page name...">
+            <button class="btn btn-primary" id="addPageBtn" style="padding:10px 25px;">Add</button>
+          </div>
+
+          <div class="added-pages-list" id="addedPagesContainer">
+            </div>
+
+          <label style="margin-top:20px;">Suggestions for your Industry & Package</label>
+          <div class="suggestion-box" id="pageSuggestions">
+            </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav-buttons">
+      <button class="btn btn-secondary" onclick="nextStep(1)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="nextStep(3)">Next: Planning &rarr;</button>
     </div>
   </div>
 
   <script src="script.js"></script>
-  <script>
-    /* PAGE SPECIFIC LOGIC */
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.loadState) window.loadState();
-
-      if (window.state && window.state.package && window.state.package.id) {
-        const selected = document.querySelector('.package-card[data-package-id="' + window.state.package.id + '"]');
-        if (selected) selected.classList.add('selected');
-        // Restore without forcing open
-        handlePackageSelected(true);
-      }
-
-      if (window.updateBrandKitDisplay) window.updateBrandKitDisplay();
-
-      if (window.state && Array.isArray(window.state.addons)) {
-        window.state.addons.forEach(function (addon) {
-          const pill = document.querySelector('.addon-pill[data-addon-id="' + addon.id + '"]');
-          if (pill) pill.classList.add('selected');
-        });
-        const custom = window.state.addons.find(a => a.id === 'custom_branding');
-        if (custom) {
-          const pill = document.getElementById('customBrandingPill');
-          if (pill) pill.classList.add('selected');
-          const panel = document.getElementById('customBrandingPanel');
-          if (panel) panel.classList.remove('hidden');
-          const nameEl = document.getElementById('customBrandingName');
-          const priceEl = document.getElementById('customBrandingPrice');
-          if (nameEl && custom.name) nameEl.value = custom.name.replace(/^Custom:\s*/, '');
-          if (priceEl && custom.price != null) priceEl.value = custom.price;
-        }
-      }
-      restoreBrandingProvided();
-      initLocalAutosave(['brandingProvidedNotes','customBrandingName','customBrandingPrice']);
-      
-      // Initialize file upload listener
-      const fileInput = document.getElementById('brandingUploads');
-      if (fileInput) {
-        fileInput.addEventListener('change', handleFileUpload);
-      }
-
-      if (window.calculateTotal) window.calculateTotal();
-    });
-
-    function handlePackageSelected(isRestore) {
-      const notice = document.getElementById('brandingLockedNotice');
-      const unlocked = document.getElementById('brandingUnlocked');
-      if (notice) notice.classList.add('hidden');
-      if (unlocked) unlocked.classList.remove('hidden');
-      
-      const branding = document.getElementById('brandingSection');
-      if (branding && !isRestore) {
-        // Only automatically open branding if it's the first time selecting
-        // Otherwise, respect the user's closed state
-        branding.classList.remove('collapsed');
-      }
-      // Re-init collapsibles to ensure listeners are active
-      if (window.initCollapsibles) window.initCollapsibles(); 
-      if (window.updateBrandKitDisplay) window.updateBrandKitDisplay();
-    }
-
-    function restoreBrandingProvided() {
-      const saved = localStorage.getItem('brandingProvided');
-      if (!saved) return;
-      const yes = document.getElementById('brandingProvidedYes');
-      const no = document.getElementById('brandingProvidedNo');
-      if (saved === 'yes' && yes) yes.checked = true;
-      if (saved === 'no' && no) no.checked = true;
-      updateBrandingPanels(saved);
-    }
-
-    function updateBrandingPanels(value) {
-      const yesPanel = document.getElementById('brandingProvidedPanel');
-      const noPanel = document.getElementById('brandingNotProvidedPanel');
-      if (yesPanel) yesPanel.classList.toggle('hidden', value !== 'yes');
-      if (noPanel) noPanel.classList.toggle('hidden', value !== 'no');
-    }
-
-    document.addEventListener('change', function (e) {
-      if (e.target && e.target.name === 'brandingProvided') {
-        localStorage.setItem('brandingProvided', e.target.value);
-        updateBrandingPanels(e.target.value);
-      }
-    });
-
-    // File Upload Logic
-    function handleFileUpload(e) {
-      const files = e.target.files;
-      const box = document.getElementById('file-staging-box');
-      const list = document.getElementById('file-list-content');
-      
-      if (!files.length) {
-        box.classList.add('hidden');
-        return;
-      }
-      
-      box.classList.remove('hidden');
-      list.innerHTML = ''; // Clear previous
-
-      Array.from(files).forEach(file => {
-        const row = document.createElement('div');
-        row.className = 'file-list-item';
-        
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = file.name;
-        
-        // Create local download URL
-        const url = URL.createObjectURL(file);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = file.name;
-        link.className = 'btn-download-mini';
-        link.textContent = 'Download';
-        
-        row.appendChild(nameSpan);
-        row.appendChild(link);
-        list.appendChild(row);
-      });
-    }
-
-    function toggleCustomBranding(pill) {
-      const panel = document.getElementById('customBrandingPanel');
-      const isSelected = pill.classList.toggle('selected');
-      if (panel) panel.classList.toggle('hidden', !isSelected);
-      if (!isSelected) {
-        if (window.removeAddonById) window.removeAddonById('custom_branding');
-        return;
-      }
-      updateCustomBrandingAddon();
-    }
-
-    function updateCustomBrandingAddon() {
-      const pill = document.getElementById('customBrandingPill');
-      if (!pill || !pill.classList.contains('selected')) return;
-      const nameEl = document.getElementById('customBrandingName');
-      const priceEl = document.getElementById('customBrandingPrice');
-      const nameRaw = nameEl ? nameEl.value.trim() : '';
-      const name = nameRaw ? `Custom: ${nameRaw}` : 'Custom Branding Service';
-      const price = priceEl ? Number(priceEl.value) : 0;
-      if (!price || price <= 0) {
-        if (window.removeAddonById) window.removeAddonById('custom_branding');
-        return;
-      }
-      if (window.upsertAddon) window.upsertAddon('custom_branding', name, price);
-    }
-
-    document.addEventListener('input', function (e) {
-      if (e.target && (e.target.id === 'customBrandingName' || e.target.id === 'customBrandingPrice')) {
-        updateCustomBrandingAddon();
-      }
-    });
-
-    function initLocalAutosave(ids) {
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const saved = localStorage.getItem(id);
-        if (saved !== null) el.value = saved;
-        const handler = () => localStorage.setItem(id, el.value);
-        el.addEventListener('input', handler);
-        el.addEventListener('change', handler);
-      });
-    }
-  </script>
 </body>
 </html>
